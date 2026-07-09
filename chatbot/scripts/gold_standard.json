@@ -1,0 +1,30 @@
+[
+  {
+    "id": "gs1",
+    "patterns": [
+      "what is the target",
+      "primary outcome",
+      "what are we predicting"
+    ],
+    "answer": "Primary outcome is 30-day readmission (label <30). Recall is prioritized over accuracy because missing a high-risk patient is costly."
+  },
+  {
+    "id": "gs2",
+    "patterns": [
+      "bias",
+      "fairness",
+      "gender",
+      "age group"
+    ],
+    "answer": "The model is monitored for unfair performance differences by gender and age group. Subgroup metrics are in the model card and champion register."
+  },
+  {
+    "id": "gs3",
+    "patterns": [
+      "intended use",
+      "medical device",
+      "clinical decision"
+    ],
+    "answer": "This system is analytics decision-support only. It is not a medical device and must not be used for standalone clinical decisions."
+  }
+]

@@ -1,0 +1,48 @@
+[
+  {
+    "id": "faq1",
+    "patterns": [
+      "dataset",
+      "data source",
+      "diabetes"
+    ],
+    "answer": "The project uses the Diabetes 130-US Hospitals dataset. Paths are registered in datafile.txt so sources can be added or removed without code changes."
+  },
+  {
+    "id": "faq2",
+    "patterns": [
+      "how to run",
+      "master notebook",
+      "pipeline"
+    ],
+    "answer": "Run master.ipynb from the project root to execute phases 0 through 5 in order. The pipeline fails fast if data-quality gates fail."
+  },
+  {
+    "id": "faq3",
+    "patterns": [
+      "power bi",
+      "dashboard"
+    ],
+    "answer": "Power BI connects to certified CSV marts in data/exports/. See powerbi/BUILD_INSTRUCTIONS.md for the five pages."
+  },
+  {
+    "id": "faq4",
+    "patterns": [
+      "who are you",
+      "what are you",
+      "your name"
+    ],
+    "answer": "I'm the Hospital Readmission Analytics assistant for this project. I can answer questions about certified metrics, the ML pipeline, dashboards, and governance. I cannot provide medical advice or answer unrelated general-knowledge questions."
+  },
+  {
+    "id": "faq5",
+    "patterns": [
+      "what should i do",
+      "what do i do",
+      "getting started",
+      "help me start",
+      "now what"
+    ],
+    "answer": "Start on the Home page: confirm artifacts are green, index Chroma neighbors, then explore Hospital Overview dashboards. For live scoring use Risk Prediction; for project Q&A stay here. To rebuild everything, run master.ipynb phases 0–5."
+  }
+]

@@ -1,0 +1,10 @@
+{
+  "total_patients": 71518,
+  "total_encounters": 101766,
+  "readmission_rate_30d": 0.11159915885462728,
+  "avg_los": 4.395986871843248,
+  "high_risk_rate": 0.013464871350486601,
+  "champion_model": "rf",
+  "champion_recall": 0.5513126491646778,
+  "champion_roc_auc": 0.6496991006151235
+}

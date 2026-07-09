@@ -1,0 +1,205 @@
+%% Healthcare Patient Readmission Analysis — Full Architecture v2
+%% Batch pipeline + MCP integration + advanced inference + consumers
+%% Export PNG: python scripts/render_final_architecture_v2.py
+%% Or: https://mermaid.live → paste → Export PNG
+
+flowchart TB
+  subgraph sources [Sources and Registry]
+    Datafile["datafile.txt\nrole|zone|path registry\n17 registered artifacts"]
+    RawCSV["data/raw/diabetic_data.csv\n101,766 encounters | 50 cols"]
+    Env[".venv Hospital Project kernel\nMATRIX_SAMPLE CHAMPION_SAMPLE SKIP_TUNING"]
+  end
+
+  subgraph phase0 [Phase 0 — Ingestion and Governance]
+    P0NB["phase0_ingestion_lake_governance.ipynb"]
+    Bronze["bronze/encounters_raw.parquet\nlanding copy + checksum"]
+    DQ["DQ gates fail-fast\n8 checks: completeness uniqueness validity consistency timeliness"]
+    Silver["silver/encounters.parquet\ncleaned conformed"]
+    Manifest["bronze/_manifests/latest.json\nRUN_ID lineage"]
+    NoSQL0["nosql/rbac_roles.json\nmetadata catalog pipeline_runs"]
+    DQScore["exports/mart_dq_scorecard.csv"]
+  end
+
+  subgraph phase1 [Phase 1 — SQL Modeling Marts and RAG Seed]
+    P1NB["phase1_modeling_marts_sql.ipynb"]
+    Warehouse["data/warehouse/hospital.db\nKimball: dim_patient fact_admission fact_medication fact_lab"]
+    SQL["sql/ — 12 analytical queries"]
+    MartReadmit["exports/mart_readmission.csv"]
+    MetricDict["nosql/metric_dictionary.json"]
+    RAGSeed["nosql/rag_documents.json"]
+    ChromaSeed["data/vectordb/project_knowledge\nChroma embeddings seeded"]
+  end
+
+  subgraph phase2 [Phase 2 — Stats Features and EDA]
+    P2NB["phase2_stats_features.ipynb"]
+    EDA["exports/eda/ 5 inline plots\nreadmit age LOS meds admission"]
+    GoldFeat["gold/model_features.parquet\n30 cols leakage denylist"]
+    RNNSeq["gold/rnn_sequences.parquet\ndiag insulin token sequences"]
+    FeatDict["nosql/feature_dictionary.json"]
+  end
+
+  subgraph ml_pkg [Shared ML Package ml/]
+    Preprocess["preprocess.py build_preprocessor"]
+    Splits["splits.py 7 split protocols"]
+    Tuning["tuning.py make_estimator hyperparams.yaml"]
+    Sample["sample.py MATRIX_SAMPLE cohort lock"]
+    TuneScript["scripts/tune_hyperparams.py\nRandomizedSearchCV + Optuna RNN"]
+  end
+
+  subgraph phase3 [Phase 3 — ML Experiment Matrix and Model Risk]
+    P3NB["phase3_ml_experiments.ipynb\npipeline: cohort → tune → matrix → stack → champion"]
+    HyperYAML["models/hyperparams.yaml\ntabular CV recall + RNN Optuna"]
+    Matrix["§6 experiment matrix\n3 horizons x 7 splits x 8 runs = 168 rows"]
+    ModelsList["logreg | rf | xgboost | lightgbm | catboost | rnn\ngb_ensemble | tri_ensemble"]
+    MatrixCSV["exports/experiments_matrix.csv\n168 x 13 cols metrics table"]
+    Stack["§7 stacking LGB + CatBoost + XGB\nmeta-learner LogisticRegression"]
+    Champion["models/champion_pipeline.joblib\nserve: RF interpretable fallback"]
+    AdvArtifacts["rnn_primary.pt shadow_tri_ensemble.joblib\nrouting_config.json rnn_token_maps.json"]
+    MRM["SHAP | fairness | ablation | Brier\nmodel_card.json champion_register.json"]
+    ExpResults["gold/experiment_results.parquet\n169 rows incl stacking"]
+    Predictions["gold/test_predictions.parquet\nmatrix_predictions.parquet"]
+    ABTest["models/ab_test_result.json\nchampion vs challenger"]
+  end
+
+  subgraph phase4 [Phase 4 — Power BI Certified Exports]
+    P4NB["phase4_powerbi_exports.ipynb"]
+    Marts["exports/mart_clinical_risk.csv\nmart_model_performance.csv\nmart_actual_vs_predicted.csv\nmart_shadow_disagreement.csv optional"]
+    KPI["exports/kpi_snapshot.json"]
+    PBIBuild["powerbi/BUILD_INSTRUCTIONS.md"]
+  end
+
+  subgraph phase5 [Phase 5 — Clinician App LangGraph Streamlit]
+    P5NB["phase5_langgraph_app.ipynb"]
+    Streamlit["app_streamlit.py\nPredict tab + Chat tab"]
+    Scripts["chatbot/scripts/*.json\ngold_standard governance_faq model_cards"]
+    Router["LangGraph router + MCP Model Tribunal\nRBAC guardrails audit trail"]
+    Ollama["Ollama Desktop deepseek-r1 llama3\nphrasing only never clinical decisions"]
+  end
+
+  subgraph advanced [Advanced Inference Layer inference/ governance/]
+    DQGate["governance/dq_rules.py\nDQ-gated live scoring"]
+    Uncertainty["inference/routing.py\nRF + RNN uncertainty band blend"]
+    Shadow["inference/shadow.py\nshadow tri_ensemble disagreement flag"]
+    Similarity["inference/similarity.py + similarity_svc\nChroma encounter_neighbors K=5"]
+    Tribunal["inference/tribunal.py\nmulti-gate LangGraph workflow"]
+    NeighborIdx["scripts/index_encounter_neighbors.py"]
+  end
+
+  subgraph mcp_ide [MCP Layer — Cursor IDE .cursor/mcp.json]
+    CursorAgent["Cursor Agent development"]
+    MCPCfg["18-server fleet config"]
+  end
+
+  subgraph mcp_fleet [MCP Server Fleet mcp/servers + services]
+    direction TB
+    FS["Filesystem official"]
+    GIT["Git official"]
+    TERM["Terminal Cursor"]
+    BR["Browser Cursor Browse"]
+    PD["Pandas custom"]
+    NP["NumPy custom"]
+    SQLMCP["SQLite official + custom RO"]
+    CH["Chroma official + wrapper"]
+    LOG["Logging custom"]
+    CFG["Config custom"]
+    NOTIF["Notifications custom"]
+    SCHED["Scheduler custom"]
+    HTTP["HTTP fetch + Ollama tools"]
+    REDIS["Redis official + svc"]
+    FRED["FRED macro stretch"]
+    MQTT["MQTT IoT demo stretch"]
+    PY["Python .venv runtime"]
+    Pool["mcp/client/pool.py runtime tool pool"]
+    Health["scripts/mcp_healthcheck.py\ndocker-compose.mcp.yml"]
+  end
+
+  subgraph consumers [Consumers and Ops]
+    PBI["Power BI Desktop\n5 pages: Overview Readmissions Patients Model Performance Cohort"]
+    Clinician["Clinician UI\nrisk band SHAP factors similar cohorts chat"]
+    Audit["nosql/audit_events.json"]
+    Master["master.ipynb orchestrates Phase 0→5 fail-fast"]
+  end
+
+  %% Sources
+  Datafile --> RawCSV
+  Env --> P0NB
+
+  %% Phase 0
+  RawCSV --> P0NB --> Bronze --> DQ --> Silver
+  DQ --> Manifest
+  DQ --> NoSQL0
+  DQ --> DQScore
+
+  %% Phase 1
+  Silver --> P1NB --> Warehouse --> SQL --> MartReadmit
+  Warehouse --> MetricDict
+  P1NB --> RAGSeed --> ChromaSeed
+
+  %% Phase 2
+  Silver --> P2NB --> EDA
+  P2NB --> GoldFeat
+  P2NB --> RNNSeq
+  P2NB --> FeatDict
+
+  %% ML package
+  GoldFeat --> ml_pkg
+  RNNSeq --> ml_pkg
+  ml_pkg --> P3NB
+  TuneScript --> HyperYAML --> P3NB
+
+  %% Phase 3
+  P3NB --> Matrix --> ModelsList --> MatrixCSV
+  Matrix --> Stack
+  Stack --> Champion --> AdvArtifacts
+  Champion --> MRM
+  MRM --> ExpResults
+  MRM --> Predictions
+  MRM --> ABTest
+
+  %% Phase 4
+  Champion --> P4NB
+  MartReadmit --> P4NB
+  Predictions --> P4NB
+  ExpResults --> P4NB
+  MatrixCSV --> P4NB
+  P4NB --> Marts --> KPI --> PBI
+  P4NB --> PBIBuild --> PBI
+
+  %% Phase 5 + advanced
+  Champion --> Streamlit
+  Marts --> Streamlit
+  Scripts --> Router
+  MetricDict --> Router
+  RAGSeed --> Router
+  ChromaSeed --> Router
+  P5NB --> Streamlit
+  Streamlit --> DQGate --> Uncertainty
+  Uncertainty --> Shadow
+  Streamlit --> Similarity
+  NeighborIdx --> Similarity
+  Streamlit --> Tribunal
+  Router --> Pool
+  Tribunal --> Pool
+  Router --> Ollama --> Clinician
+  Streamlit --> Audit
+
+  %% MCP
+  CursorAgent --> MCPCfg --> mcp_fleet
+  Pool --> mcp_fleet
+  mcp_fleet --> Warehouse
+  mcp_fleet --> ChromaSeed
+  mcp_fleet --> Marts
+  mcp_fleet --> Champion
+  mcp_fleet --> Audit
+  Health --> mcp_fleet
+
+  %% Orchestration
+  Master -.-> P0NB
+  Master -.-> P1NB
+  Master -.-> P2NB
+  Master -.-> P3NB
+  Master -.-> P4NB
+  Master -.-> P5NB
+
+  PBIBuild --> PBI
+  Clinician --> Audit

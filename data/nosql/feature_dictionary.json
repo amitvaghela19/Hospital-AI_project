@@ -1,0 +1,47 @@
+{
+  "features": [
+    "race",
+    "gender",
+    "age",
+    "admission_type_id",
+    "discharge_disposition_id",
+    "admission_source_id",
+    "time_in_hospital",
+    "num_lab_procedures",
+    "num_procedures",
+    "num_medications",
+    "number_outpatient",
+    "number_emergency",
+    "number_inpatient",
+    "number_diagnoses",
+    "diag_1",
+    "change",
+    "diabetesMed",
+    "active_med_count",
+    "total_visits",
+    "has_A1C",
+    "has_max_glu",
+    "insulin",
+    "metformin",
+    "A1Cresult",
+    "max_glu_serum"
+  ],
+  "leakage_denylist": [
+    "encounter_id",
+    "patient_nbr",
+    "readmit_30d",
+    "readmit_60d_proxy",
+    "readmit_90d_proxy",
+    "readmitted"
+  ],
+  "cohort": {
+    "index_encounter": "one row per admission/encounter in Diabetes 130",
+    "primary_outcome": "readmit_30d (<30)",
+    "proxy_horizons": "60/90 use any readmission (<30 or >30) - not true calendar follow-up",
+    "exclusions_not_applicable": [
+      "in-hospital death",
+      "transfer",
+      "planned readmission - fields absent"
+    ]
+  }
+}

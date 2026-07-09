@@ -1,0 +1,20 @@
+[
+  {
+    "id": "mc1",
+    "patterns": [
+      "champion",
+      "best model",
+      "which model"
+    ],
+    "answer": "The serving champion is recorded in models/champion_register.json with metrics, threshold, and top factors. Matrix winner may be an ensemble; serving prefers a stable interpretable pipeline when needed."
+  },
+  {
+    "id": "mc2",
+    "patterns": [
+      "metrics",
+      "recall",
+      "roc"
+    ],
+    "answer": "Every experiment logs accuracy, precision, recall, F1, and ROC-AUC. Operating thresholds are tuned recall-first on validation data."
+  }
+]

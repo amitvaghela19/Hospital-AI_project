@@ -1,0 +1,22 @@
+{
+  "datasets": [
+    {
+      "name": "encounters_silver",
+      "path": "data/lake/silver/encounters.parquet",
+      "grain": "encounter",
+      "pii_fields": [
+        "encounter_id",
+        "patient_nbr"
+      ]
+    }
+  ],
+  "lineage": [
+    "raw csv",
+    "bronze",
+    "silver",
+    "modeling layer",
+    "marts",
+    "BI/app"
+  ],
+  "run_id": "20260706T113515Z_6042d051"
+}

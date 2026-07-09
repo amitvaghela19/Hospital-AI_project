@@ -1,0 +1,126 @@
+%% Healthcare Patient Readmission Analysis — End-to-End Architecture (docs compact)
+%% Full detail: ../final architecture v2.mmd
+%% Regenerate PNG: python scripts/render_architecture_png.py
+
+flowchart TB
+  subgraph sources [Sources]
+    Datafile["datafile.txt\n17 registered paths"]
+    RawCSV["data/raw/diabetic_data.csv\n101,766 encounters"]
+  end
+
+  subgraph phase0 [Phase 0 — Ingestion and Governance]
+    P0NB["phase0_ingestion_lake_governance.ipynb"]
+    Bronze["bronze/encounters_raw.parquet"]
+    DQ["DQ gates fail-fast"]
+    Silver["silver/encounters.parquet"]
+    Manifest["bronze/_manifests/latest.json"]
+    NoSQL0["nosql RBAC metadata"]
+    DQScore["exports/mart_dq_scorecard.csv"]
+  end
+
+  subgraph phase1 [Phase 1 — SQL Marts and RAG]
+    P1NB["phase1_modeling_marts_sql.ipynb"]
+    Warehouse["hospital.db SQLite Kimball"]
+    SQL["sql/ 12 queries"]
+    MartReadmit["exports/mart_readmission.csv"]
+    MetricDict["nosql/metric_dictionary.json"]
+    RAGSeed["nosql/rag_documents.json"]
+    Vectordb["data/vectordb project_knowledge"]
+  end
+
+  subgraph phase2 [Phase 2 — Stats and Features]
+    P2NB["phase2_stats_features.ipynb"]
+    EDA["exports/eda/ 5 inline plots"]
+    GoldFeat["gold/model_features.parquet"]
+    RNNSeq["gold/rnn_sequences.parquet"]
+    FeatDict["nosql/feature_dictionary.json"]
+  end
+
+  subgraph ml_pkg [ml/ package]
+    Tuning["tuning.py hyperparams.yaml"]
+    Preprocess["preprocess splits sample"]
+  end
+
+  subgraph phase3 [Phase 3 — ML and Model Risk]
+    P3NB["phase3_ml_experiments.ipynb"]
+    Matrix["§6 matrix 168 runs"]
+    MatrixCSV["exports/experiments_matrix.csv\n168 x 13"]
+    Stack["§7 stacking LGB Cat XGB"]
+    Champion["champion_pipeline.joblib"]
+    MRM["SHAP fairness model_card ab_test"]
+    ExpResults["gold/experiment_results.parquet"]
+    Predictions["gold/test_predictions.parquet"]
+    AdvArt["rnn_primary shadow_tri routing_config"]
+  end
+
+  subgraph phase4 [Phase 4 — Power BI Exports]
+    P4NB["phase4_powerbi_exports.ipynb"]
+    Marts["exports/mart_*.csv"]
+    KPI["exports/kpi_snapshot.json"]
+    PBIBuild["powerbi/BUILD_INSTRUCTIONS.md"]
+  end
+
+  subgraph phase5 [Phase 5 — Clinician App]
+    P5NB["phase5_langgraph_app.ipynb"]
+    Streamlit["app_streamlit.py"]
+    AdvInf["DQ routing shadow tribunal"]
+    Scripts["chatbot/scripts/*.json"]
+    Router["LangGraph MCP router"]
+    Ollama["Ollama deepseek-r1 llama3"]
+  end
+
+  subgraph mcp [MCP Layer]
+    Pool["mcp/client/pool.py"]
+    Fleet["18 MCP servers"]
+  end
+
+  subgraph consumers [Consumers]
+    PBI["Power BI 5 pages"]
+    Clinician["Clinician UI predict + chat"]
+  end
+
+  Master["master.ipynb"]
+
+  Datafile --> RawCSV --> P0NB --> Bronze --> DQ --> Silver
+  DQ --> Manifest
+  DQ --> NoSQL0
+  DQ --> DQScore
+  Silver --> P1NB --> Warehouse --> SQL --> MartReadmit
+  P1NB --> MetricDict
+  P1NB --> RAGSeed --> Vectordb
+  Silver --> P2NB --> EDA
+  P2NB --> GoldFeat
+  P2NB --> RNNSeq
+  P2NB --> FeatDict
+  GoldFeat --> ml_pkg
+  RNNSeq --> ml_pkg
+  ml_pkg --> P3NB
+  P3NB --> Matrix --> MatrixCSV
+  Matrix --> Stack --> Champion --> MRM
+  MRM --> ExpResults
+  MRM --> Predictions
+  Champion --> AdvArt
+  Champion --> P4NB
+  MartReadmit --> P4NB
+  Predictions --> P4NB
+  ExpResults --> P4NB
+  MatrixCSV --> P4NB
+  P4NB --> Marts --> KPI --> PBI
+  P4NB --> PBIBuild --> PBI
+  Champion --> Streamlit
+  Marts --> Streamlit
+  AdvArt --> AdvInf
+  Scripts --> Router
+  MetricDict --> Router
+  RAGSeed --> Router
+  P5NB --> Streamlit
+  Streamlit --> AdvInf --> Router
+  Router --> Pool --> Fleet
+  Pool --> Ollama
+  Ollama --> Clinician
+  Master -.-> P0NB
+  Master -.-> P1NB
+  Master -.-> P2NB
+  Master -.-> P3NB
+  Master -.-> P4NB
+  Master -.-> P5NB

@@ -1,0 +1,15 @@
+[theme]
+base = "dark"
+primaryColor = "#00D4FF"
+backgroundColor = "#0B1426"
+secondaryBackgroundColor = "#111827"
+textColor = "#E8F4FD"
+font = "sans serif"
+
+[server]
+headless = true
+# Streamlit Cloud entrypoint
+enableStaticServing = true
+
+[browser]
+gatherUsageStats = false

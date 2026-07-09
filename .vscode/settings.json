@@ -1,0 +1,9 @@
+{
+  "python.defaultInterpreterPath": "${workspaceFolder}/.venv/Scripts/python.exe",
+  "python.terminal.activateEnvironment": true,
+  "notebook.defaultKernel": "hospital-dotvenv",
+  "jupyter.kernels.excludePythonEnvironments": [],
+  "notebook.kernelProvider": "jupyter",
+  "jupyter.interactiveWindow.cellMarker.codeRegex": "^# COMMAND ----------|^# %%$",
+  "jupyter.kernels.trusted": ["hospital-dotvenv"]
+}

@@ -1,0 +1,9 @@
+check,dimension,passed,detail,critical,run_id
+row_count_positive,completeness,True,rows=101766,True,20260706T113515Z_6042d051
+has_encounter_id,validity,True,encounter_id present,True,20260706T113515Z_6042d051
+has_readmitted,validity,True,readmitted present,True,20260706T113515Z_6042d051
+encounter_id_unique,uniqueness,True,unique=101766 total=101766,True,20260706T113515Z_6042d051
+readmitted_domain,validity,True,"values=['<30', '>30', 'NO']",True,20260706T113515Z_6042d051
+los_range,consistency,True,mean_los=4.40,True,20260706T113515Z_6042d051
+gender_domain,validity,True,"gender={'Male', 'Female', 'Unknown/Invalid'}",True,20260706T113515Z_6042d051
+ingest_timestamp,timeliness,True,2026-07-06T11:35:16.800769+00:00,True,20260706T113515Z_6042d051

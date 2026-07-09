@@ -1,0 +1,30 @@
+protocol:
+  horizon: 30d
+  split: 70/15/15
+  scoring: recall
+
+tabular:
+  logreg:
+    clf__C: [0.01, 0.1, 1.0, 10.0]
+    clf__max_iter: [200, 500]
+  rf:
+    clf__n_estimators: [50, 80, 120, 200]
+    clf__max_depth: [6, 12, 18, null]
+  xgboost:
+    clf__n_estimators: [60, 80, 120]
+    clf__max_depth: [3, 5, 7]
+    clf__learning_rate: [0.03, 0.08, 0.15]
+  lightgbm:
+    clf__n_estimators: [60, 80, 120]
+    clf__max_depth: [3, 5, 7]
+    clf__learning_rate: [0.03, 0.08, 0.15]
+  catboost:
+    clf__iterations: [60, 80, 120]
+    clf__depth: [4, 5, 7]
+    clf__learning_rate: [0.03, 0.08, 0.15]
+
+rnn:
+  emb: [8, 16, 32]
+  hidden: [16, 32, 64]
+  lr: [0.0001, 0.001, 0.003]
+  epochs: [3, 5, 8]

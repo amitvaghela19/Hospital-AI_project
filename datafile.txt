@@ -1,0 +1,18 @@
+# role|zone|path|description
+# Edit this file to add/remove datasets. Notebooks read paths from here — no code changes needed.
+raw|bronze|data/raw/diabetic_data.csv|Primary Diabetes 130-US Hospitals source
+clean|silver|data/lake/silver/encounters.parquet|Conformed encounters (silver)
+features|gold|data/lake/gold/model_features.parquet|Leakage-controlled model-ready features
+sequences|gold|data/lake/gold/rnn_sequences.parquet|RNN diagnosis/med sequence features
+predictions|gold|data/lake/gold/test_predictions.parquet|Scored test predictions for BI
+metrics|gold|data/lake/gold/experiment_results.parquet|Full experiment matrix results
+mart|export|data/exports/mart_readmission.csv|Certified BI mart - hospital/readmission KPIs
+mart|export|data/exports/mart_clinical_risk.csv|Certified BI mart - risk scores and factors
+mart|export|data/exports/mart_model_performance.csv|Certified BI mart - model performance
+mart|export|data/exports/mart_dq_scorecard.csv|DQ scorecard export
+manifest|ops|data/lake/bronze/_manifests/latest.json|Latest ingest run_id manifest
+champion|ops|models/champion_register.json|Champion model register for serving
+hyperparams|ops|models/hyperparams.yaml|Tuned hyperparameters (tabular CV + RNN Optuna)
+vectordb|ops|data/vectordb|Chroma persistence (project_knowledge + encounter_neighbors)
+mart|export|data/exports/experiments_matrix.csv|Experiment matrix results (model x horizon x split)
+mart|export|data/exports/powerbi_dashboard_master.csv|Power BI single-file dashboard master (stacked record_type)

@@ -1,0 +1,45 @@
+﻿# Large / rebuildable artifacts
+data/lake/
+data/warehouse/
+data/vectordb/
+data/raw/_extract/
+data/raw/*.zip
+data/raw/final_project_dataset.csv
+catboost_info/
+
+# Model binaries — small champion/shadow/rnn files are committed for Streamlit Cloud scoring
+models/*.joblib
+!models/champion_pipeline.joblib
+!models/shadow_tri_ensemble.joblib
+models/*.pt
+!models/rnn_primary.pt
+data/exports/eda/
+
+# Runtime nosql (regenerated at runtime) — seed files in data/nosql/ ARE committed for Cloud
+data/nosql/audit_events.json
+data/nosql/chat_sessions.json
+data/nosql/chat_feedback.json
+data/nosql/pipeline_runs.json
+data/nosql/learned_answers.json
+
+# Python / notebooks
+__pycache__/
+.ipynb_checkpoints/
+.env
+.venv/
+venv/
+
+# Local secrets (never commit)
+.streamlit/secrets.toml
+
+# Local smoke / debug output
+smoke_full.txt
+smoke_page.txt
+
+# Local Power BI binary (instructions + marts are source of truth)
+powerbi/*.pbix
+
+# IDE / OS
+.cursor/
+.DS_Store
+Thumbs.db

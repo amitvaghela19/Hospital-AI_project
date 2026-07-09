@@ -1,0 +1,42 @@
+tuned_at: '2026-07-07T03:32:05.731660+00:00'
+protocol:
+  horizon: 30d
+  split: 70/15/15
+  scoring: recall
+  train_rows: 71236
+models:
+  logreg:
+    best_params:
+      clf__max_iter: 200
+      clf__C: 10.0
+    best_cv_recall: 0.5235220125786163
+  rf:
+    best_params:
+      clf__n_estimators: 200
+      clf__max_depth: 6
+    best_cv_recall: 0.5359748427672956
+  xgboost:
+    best_params:
+      clf__n_estimators: 120
+      clf__max_depth: 7
+      clf__learning_rate: 0.15
+    best_cv_recall: 0.02226415094339623
+  lightgbm:
+    best_params:
+      clf__n_estimators: 60
+      clf__max_depth: 3
+      clf__learning_rate: 0.03
+    best_cv_recall: 0.599874213836478
+  catboost:
+    best_params:
+      clf__learning_rate: 0.15
+      clf__iterations: 80
+      clf__depth: 5
+    best_cv_recall: 0.5786163522012578
+rnn:
+  best_params:
+    emb: 32
+    hidden: 16
+    lr: 0.003
+    epochs: 5
+  best_val_recall: 0.05226071638285379

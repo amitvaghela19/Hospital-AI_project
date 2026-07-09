@@ -1,0 +1,12 @@
+[
+  {
+    "id": "cd1",
+    "patterns": [
+      "diagnose",
+      "prescribe",
+      "treatment plan",
+      "should i discharge"
+    ],
+    "answer": "I cannot provide medical diagnosis or treatment instructions. This tool only summarizes analytics risk scores and documented project facts."
+  }
+]

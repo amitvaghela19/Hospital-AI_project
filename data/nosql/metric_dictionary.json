@@ -1,0 +1,6 @@
+{
+  "readmission_rate_30d": "sum(readmit_30d)/count(encounters) for cohort",
+  "avg_los": "avg(time_in_hospital)",
+  "high_risk_rate": "share with predicted risk_band=High in scored mart",
+  "frequent_visitor": "number_inpatient >= 2 OR total_visits >= 3"
+}

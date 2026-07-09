@@ -1,0 +1,20 @@
+[
+  {
+    "id": "ds1",
+    "patterns": [
+      "mart_readmission",
+      "readmission mart",
+      "certified mart"
+    ],
+    "answer": "mart_readmission.csv is the certified readmission mart with encounter_id, patient_nbr, gender, race, age band, time_in_hospital, readmit_30d, and related features. Chat dimensional metrics read from this file."
+  },
+  {
+    "id": "ds2",
+    "patterns": [
+      "columns",
+      "schema",
+      "feature dictionary"
+    ],
+    "answer": "Feature definitions live in data/nosql/feature_dictionary.json; KPI definitions in metric_dictionary.json. Run scripts/build_project_knowledge.py to refresh RAG documents."
+  }
+]

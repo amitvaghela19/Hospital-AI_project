@@ -1,0 +1,30 @@
+[
+  {
+    "id": "metric_readmit",
+    "text": "Readmission rate 30d = sum(readmit_30d)/count(encounters). Primary outcome is readmission within 30 days."
+  },
+  {
+    "id": "intended_use",
+    "text": "Analytics decision-support only. Not a medical device. Not for standalone clinical decisions."
+  },
+  {
+    "id": "bias",
+    "text": "Model must be monitored for unfair performance differences by gender and age group."
+  },
+  {
+    "id": "feature_dictionary",
+    "text": "Certified feature dictionary:\n- race\n- gender\n- age\n- admission_type_id\n- discharge_disposition_id\n- admission_source_id\n- time_in_hospital\n- num_lab_procedures\n- num_procedures\n- num_medications\n- number_outpatient\n- number_emergency\n- number_inpatient\n- number_diagnoses\n- diag_1\n- change\n- diabetesMed\n- active_med_count\n- total_visits\n- has_A1C\n- has_max_glu\n- insulin\n- metformin\n- A1Cresult\n- max_glu_serum"
+  },
+  {
+    "id": "metric_dictionary",
+    "text": "Metric dictionary:\n- readmission_rate_30d: sum(readmit_30d)/count(encounters) for cohort\n- avg_los: avg(time_in_hospital)\n- high_risk_rate: share with predicted risk_band=High in scored mart\n- frequent_visitor: number_inpatient >= 2 OR total_visits >= 3"
+  },
+  {
+    "id": "rbac_roles",
+    "text": "RBAC roles and chat capabilities:\n- admin: audit, ids, predict\n- analyst: ids, predict\n- clinician: predict\n- viewer: defaults"
+  },
+  {
+    "id": "dataset_mart_readmission",
+    "text": "mart_readmission certified columns include gender, race, age band, readmit_30d, time_in_hospital, encounter_id. Dimensional chat answers filter this mart for gender/race/age readmission counts."
+  }
+]

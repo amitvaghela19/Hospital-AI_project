@@ -1,0 +1,10 @@
+{
+  "model": "tri_ensemble_shadow",
+  "members": [
+    "xgboost",
+    "lightgbm",
+    "catboost"
+  ],
+  "threshold": 0.45,
+  "mean_val_prob": 0.3508747739694191
+}

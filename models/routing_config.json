@@ -1,0 +1,5 @@
+{
+  "uncertainty_low": 0.35,
+  "uncertainty_high": 0.55,
+  "blend_mode": "average"
+}

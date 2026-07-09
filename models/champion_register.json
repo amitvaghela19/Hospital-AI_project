@@ -1,0 +1,219 @@
+{
+  "champion_model": "catboost",
+  "reported_matrix_winner": "catboost",
+  "horizon": "30d",
+  "split": "70/15/15",
+  "threshold": 0.44999999999999996,
+  "metrics": {
+    "accuracy": 0.5311804008908686,
+    "precision": 0.15456733814772583,
+    "recall": 0.715962441314554,
+    "f1": 0.25424611857872254,
+    "roc_auc": 0.6635217247791918,
+    "model": "catboost",
+    "threshold": 0.44999999999999996,
+    "horizon": "30d",
+    "split": "70/15/15",
+    "train_size": 71236,
+    "val_size": 15264,
+    "test_size": 15266,
+    "ensemble": false
+  },
+  "top_features": [
+    {
+      "feature": "num__number_inpatient",
+      "mean_abs_shap": 0.2274108641166301
+    },
+    {
+      "feature": "num__discharge_disposition_id",
+      "mean_abs_shap": 0.18455035489833554
+    },
+    {
+      "feature": "num__total_visits",
+      "mean_abs_shap": 0.088978403859097
+    },
+    {
+      "feature": "num__number_diagnoses",
+      "mean_abs_shap": 0.05425880017993319
+    },
+    {
+      "feature": "num__time_in_hospital",
+      "mean_abs_shap": 0.05369382599884662
+    }
+  ],
+  "fairness": [
+    {
+      "group_type": "gender",
+      "group": "Female",
+      "accuracy": 0.5279064099439434,
+      "precision": 0.16095414543770264,
+      "recall": 0.7346723044397463,
+      "f1": 0.2640577507598784,
+      "roc_auc": 0.671578969592135
+    },
+    {
+      "group_type": "gender",
+      "group": "Male",
+      "accuracy": 0.534919960334325,
+      "precision": 0.14685314685314685,
+      "recall": 0.6926121372031663,
+      "f1": 0.24232633279483037,
+      "roc_auc": 0.6531358468459376
+    },
+    {
+      "group_type": "age",
+      "group": "[10-20)",
+      "accuracy": 0.8387096774193549,
+      "precision": 0.2777777777777778,
+      "recall": 0.7142857142857143,
+      "f1": 0.4,
+      "roc_auc": 0.8621262458471761
+    },
+    {
+      "group_type": "age",
+      "group": "[20-30)",
+      "accuracy": 0.6437246963562753,
+      "precision": 0.2627118644067797,
+      "recall": 0.96875,
+      "f1": 0.41333333333333333,
+      "roc_auc": 0.8601744186046512
+    },
+    {
+      "group_type": "age",
+      "group": "[30-40)",
+      "accuracy": 0.6604095563139932,
+      "precision": 0.18981481481481483,
+      "recall": 0.6307692307692307,
+      "f1": 0.2918149466192171,
+      "roc_auc": 0.6968551601948915
+    },
+    {
+      "group_type": "age",
+      "group": "[40-50)",
+      "accuracy": 0.5934144595561919,
+      "precision": 0.1721958925750395,
+      "recall": 0.7124183006535948,
+      "f1": 0.27735368956743,
+      "roc_auc": 0.6988315154572011
+    },
+    {
+      "group_type": "age",
+      "group": "[50-60)",
+      "accuracy": 0.6291746641074856,
+      "precision": 0.14946962391513982,
+      "recall": 0.6485355648535565,
+      "f1": 0.24294670846394983,
+      "roc_auc": 0.6925632301396704
+    },
+    {
+      "group_type": "age",
+      "group": "[60-70)",
+      "accuracy": 0.5507075471698113,
+      "precision": 0.14883148831488316,
+      "recall": 0.6335078534031413,
+      "f1": 0.2410358565737052,
+      "roc_auc": 0.6382590318484632
+    },
+    {
+      "group_type": "age",
+      "group": "[70-80)",
+      "accuracy": 0.4809679858835392,
+      "precision": 0.15351257588898526,
+      "recall": 0.7678958785249458,
+      "f1": 0.25587278641127575,
+      "roc_auc": 0.641717390578036
+    },
+    {
+      "group_type": "age",
+      "group": "[80-90)",
+      "accuracy": 0.4161712247324614,
+      "precision": 0.14839491217443973,
+      "recall": 0.7852564102564102,
+      "f1": 0.24961793173713703,
+      "roc_auc": 0.6255566572730753
+    },
+    {
+      "group_type": "age",
+      "group": "[90-100)",
+      "accuracy": 0.38694638694638694,
+      "precision": 0.13286713286713286,
+      "recall": 0.7169811320754716,
+      "f1": 0.22418879056047197,
+      "roc_auc": 0.5754215174628663
+    }
+  ],
+  "ablation": [
+    {
+      "group_removed": "demographics",
+      "accuracy": 0.5370103497969344,
+      "precision": 0.1565061475409836,
+      "recall": 0.7171361502347418,
+      "f1": 0.2569386038687973,
+      "roc_auc": 0.664234197768828,
+      "delta_recall": 0.0011737089201877549
+    },
+    {
+      "group_removed": "utilization",
+      "accuracy": 0.42886152233721997,
+      "precision": 0.13581144221783822,
+      "recall": 0.7676056338028169,
+      "f1": 0.23078958976621086,
+      "roc_auc": 0.6232626953037104,
+      "delta_recall": 0.05164319248826288
+    },
+    {
+      "group_removed": "medications",
+      "accuracy": 0.5305253504519848,
+      "precision": 0.1558523371550964,
+      "recall": 0.7259389671361502,
+      "f1": 0.2566123846074059,
+      "roc_auc": 0.6652273111213117,
+      "delta_recall": 0.00997652582159625
+    },
+    {
+      "group_removed": "labs",
+      "accuracy": 0.5355692388313901,
+      "precision": 0.15772750381291306,
+      "recall": 0.7282863849765259,
+      "f1": 0.2592979523610531,
+      "roc_auc": 0.6672334429325795,
+      "delta_recall": 0.01232394366197187
+    },
+    {
+      "group_removed": "diagnoses",
+      "accuracy": 0.5347831783047294,
+      "precision": 0.15661577608142493,
+      "recall": 0.7224178403755869,
+      "f1": 0.2574236721037223,
+      "roc_auc": 0.6642933289161307,
+      "delta_recall": 0.006455399061032874
+    }
+  ],
+  "brier_score": 0.2247527887125353,
+  "risk_bands": {
+    "Low": [
+      0,
+      0.33
+    ],
+    "Medium": [
+      0.33,
+      0.66
+    ],
+    "High": [
+      0.66,
+      1.0
+    ]
+  },
+  "pipeline_path": "models/champion_pipeline.joblib",
+  "hyperparams_path": "models/hyperparams.yaml",
+  "tuned": true,
+  "tuning_cv_recall": {
+    "logreg": 0.5235220125786163,
+    "rf": 0.5359748427672956,
+    "xgboost": 0.02226415094339623,
+    "lightgbm": 0.599874213836478,
+    "catboost": 0.5786163522012578
+  },
+  "rnn_val_recall": 0.05226071638285379,
+  "intended_use": "Analytics decision-support only - not a medical device"
+}

@@ -1,0 +1,33 @@
+{
+  "roles": {
+    "admin": {
+      "marts": "all",
+      "predict": true,
+      "ids": true,
+      "audit": true
+    },
+    "analyst": {
+      "marts": "all",
+      "predict": true,
+      "ids": true,
+      "audit": false
+    },
+    "clinician": {
+      "marts": [
+        "mart_clinical_risk",
+        "mart_readmission"
+      ],
+      "predict": true,
+      "ids": "limited",
+      "audit": false
+    },
+    "viewer": {
+      "marts": [
+        "mart_readmission"
+      ],
+      "predict": false,
+      "ids": false,
+      "audit": false
+    }
+  }
+}

@@ -1,0 +1,20 @@
+[
+  {
+    "id": "vc1",
+    "patterns": [
+      "viewer role",
+      "what can viewer",
+      "viewer access"
+    ],
+    "answer": "Viewer can open Hospital Overview, Risk Analysis, Patient Behavior, Grounded Chat, and System Health. Aggregates and certified dimensional metrics (gender/race/age readmission counts) are allowed; encounter lists, SQL, and FRED require elevation."
+  },
+  {
+    "id": "vc2",
+    "patterns": [
+      "unlock",
+      "elevate",
+      "sidebar password"
+    ],
+    "answer": "Use the sidebar RBAC unlock panel with your authorized credential (e.g., clinician or analyst). Passwords are never disclosed in chat."
+  }
+]

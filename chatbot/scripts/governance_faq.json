@@ -1,0 +1,28 @@
+[
+  {
+    "id": "gv1",
+    "patterns": [
+      "rbac",
+      "roles",
+      "access"
+    ],
+    "answer": "Roles are admin, analyst, clinician, and viewer. Viewers see aggregates only; clinicians can score risk with limited identifiers; admins can access audit logs."
+  },
+  {
+    "id": "gv2",
+    "patterns": [
+      "data quality",
+      "dq gate"
+    ],
+    "answer": "Phase 0 runs completeness, uniqueness, validity, consistency, and timeliness checks. Critical failures stop the pipeline."
+  },
+  {
+    "id": "gv3",
+    "patterns": [
+      "chat feedback",
+      "thumbs",
+      "learned answers"
+    ],
+    "answer": "Thumbs-up on certified chat routes is stored in chat_feedback.json. Analysts can promote feedback to learned_answers.json via System Health or scripts/promote_chat_feedback.py."
+  }
+]
