@@ -16,9 +16,9 @@ import requests
 from mcp.client.pool import pool
 from mcp.common import PATHS
 from mcp.ollama_config import get_ollama_url
-from mcp.services import http_svc, redis_svc
+from mcp.services import llm_svc, redis_svc
 from streamlit_app import ROOT
-from streamlit_app.artifacts import artifact_status, get_champion_pipeline, load_register
+from streamlit_app.chat_artifacts import artifact_status, get_champion_pipeline, load_register
 from streamlit_app.components.health_panel import rag_mode_label
 from streamlit_app.runtime_config import get_integrations, get_ollama_fallback, get_ollama_primary
 
@@ -139,7 +139,7 @@ def _run_diagnostic_checks() -> list[DiagnosticCheck]:
         checks.append(_timed(_custom_llm_check))
     elif provider_mode != "custom_api":
         def _ollama_check() -> DiagnosticCheck:
-            health = http_svc.ollama_health()
+            health = llm_svc.ollama_health()
             models = health.get("models") or []
             primary = get_ollama_primary()
             fallback = get_ollama_fallback()
@@ -180,7 +180,7 @@ def _run_diagnostic_checks() -> list[DiagnosticCheck]:
         checks.append(_timed(_ollama_check))
 
         def _ollama_probe() -> DiagnosticCheck:
-            text, model = http_svc.llm_generate(
+            text, model = llm_svc.llm_generate(
                 "Reply with exactly: DIAG_OK",
                 model=get_ollama_primary(),
                 timeout_s=25,
@@ -227,18 +227,18 @@ def _run_diagnostic_checks() -> list[DiagnosticCheck]:
             )
         )
 
-    # --- ML artifacts ---
-    artifacts = artifact_status()
-    for key, info in artifacts.items():
+    # --- ML chat_artifacts ---
+    chat_artifacts = artifact_status()
+    for key, info in chat_artifacts.items():
         label = key.replace("_", " ").title()
         checks.append(
             DiagnosticCheck(
-                "ML artifacts",
+                "ML chat_artifacts",
                 label,
                 "ok" if info["ok"] else "fail",
                 info["detail"],
                 "Artifact check failed." if not info["ok"] else "Artifact available.",
-                "Run Phase 3 notebook or `python scripts/train_advanced_artifacts.py`."
+                "Run Phase 3 notebook or `python scripts/train_advanced_chat_artifacts.py`."
                 if not info["ok"]
                 else "No action required.",
             )
@@ -247,19 +247,19 @@ def _run_diagnostic_checks() -> list[DiagnosticCheck]:
     pipe, pipe_err = get_champion_pipeline()
     checks.append(
         DiagnosticCheck(
-            "ML artifacts",
+            "ML chat_artifacts",
             "Champion inference smoke",
             "ok" if pipe is not None else "fail",
             "Pipeline loads" if pipe is not None else "Load failed",
             pipe_err or "joblib pipeline loaded successfully.",
-            "Retrain champion artifacts if the pipeline file is corrupt or missing.",
+            "Retrain champion chat_artifacts if the pipeline file is corrupt or missing.",
         )
     )
 
     reg = load_register()
     checks.append(
         DiagnosticCheck(
-            "ML artifacts",
+            "ML chat_artifacts",
             "Served champion model",
             "ok" if reg.get("champion_model") else "warn",
             reg.get("champion_model", "unknown"),

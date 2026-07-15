@@ -26,7 +26,7 @@ st.caption(
     f"IDs: {'masked' if cfg.get('ids') == 'limited' else ('allowed' if cfg.get('ids') else 'hidden')} · "
     f"SQL: {'yes' if cfg.get('can_sql') else 'no'} · "
     f"Encounter lookup: {'yes' if cfg.get('chat_encounter_detail') else 'no'} · "
-    f"**Data changes: never** (read-only in all modes for security)"
+    f"**Data changes: never** (read-only in all modes for chat_security)"
 )
 
 render_chat_panel(role)

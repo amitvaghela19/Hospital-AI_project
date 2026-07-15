@@ -87,15 +87,15 @@ RIGHT_PANELS = [
     ]),
     ("ADVANCED INFERENCE", "#FDE8E8", [
         "governance/dq_rules.py — DQ-gated live scoring (refuse bad input)",
-        "inference/routing.py — RF + RNN uncertainty-band blend",
+        "inference/chat_router.py — RF + RNN uncertainty-band blend",
         "inference/shadow.py — shadow tri_ensemble disagreement flag",
         "inference/similarity.py — Chroma encounter_neighbors (K=5)",
         "inference/tribunal.py — multi-gate LangGraph MCP workflow",
-        "scripts/index_encounter_neighbors.py | train_advanced_artifacts.py",
+        "scripts/index_encounter_neighbors.py | train_advanced_chat_artifacts.py",
     ]),
     ("ORCHESTRATION & OPS", "#EEEEEE", [
         "master.ipynb — Phase 0→5 sequential fail-fast",
-        "models/: champion_register hyperparams routing_config",
+        "models/: champion_register hyperparams chat_router_config",
         "data/nosql/: rbac audit metric_dict rag feature_dict",
         "Analytics decision-support only — NOT a medical device",
     ]),
@@ -162,7 +162,7 @@ def main() -> None:
     y_left = draw_column(ax, LEFT_X, LEFT_W, 0.955, LEFT_PHASES)
     draw_column(ax, RIGHT_X, RIGHT_W, 0.955, RIGHT_PANELS)
 
-    # Cross-links: MCP → pipeline artifacts
+    # Cross-links: MCP → pipeline chat_artifacts
     ax.add_patch(FancyArrowPatch(
         (RIGHT_X, 0.55), (LEFT_X + LEFT_W, 0.45),
         transform=ax.transAxes, arrowstyle="-|>", mutation_scale=10,

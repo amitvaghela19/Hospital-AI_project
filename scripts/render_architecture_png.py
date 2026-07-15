@@ -57,7 +57,7 @@ PHASES = [
         "ml/ package + hyperparams.yaml + experiments_matrix.csv (168×13)",
         "Models: logreg rf xgb lgb cat rnn + gb/tri ensembles",
         "Stacking: LightGBM + CatBoost + XGB → LR meta-learner",
-        "champion_pipeline.joblib | SHAP fairness model_card | advanced artifacts",
+        "champion_pipeline.joblib | SHAP fairness model_card | advanced chat_artifacts",
     ]),
     ("PHASE 4 — Power BI Exports", "#E2D5F1", [
         "phase4_powerbi_exports.ipynb",
@@ -66,7 +66,7 @@ PHASES = [
     ]),
     ("PHASE 5 — Clinician App", "#D1ECF1", [
         "phase5_langgraph_app.ipynb + app_streamlit.py",
-        "Predict: DQ gate → RF → RNN routing → shadow → Chroma cohort",
+        "Predict: DQ gate → RF → RNN chat_router → shadow → Chroma cohort",
         "Chat: MCP Model Tribunal + scripts/RAG/SQLite",
         "Ollama: deepseek-r1, llama3 (phrasing only)",
     ]),

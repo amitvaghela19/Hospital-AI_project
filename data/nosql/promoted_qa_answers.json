@@ -1,0 +1,14 @@
+[
+  {
+    "id": "learn_0001",
+    "patterns": [
+      "how many zebra readmissions demo",
+      "how many zebra",
+      "how many zebra readmissions in demo?"
+    ],
+    "answer": "Demo zebra answer: 42.",
+    "source_turn_id": "t-promo-1",
+    "route": "dimensional_metric_mcp",
+    "confidence": 1
+  }
+]

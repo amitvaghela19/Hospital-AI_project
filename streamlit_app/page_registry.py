@@ -67,7 +67,7 @@ APP_PAGES: tuple[PageDef, ...] = (
         "streamlit_app/app_pages/8_System_Health_Diagnose.py",
         "System Health Diagnose",
         "🩺",
-        "Verify prerequisites, runtime services, and ML artifacts before clinical scoring.",
+        "Verify prerequisites, runtime services, and ML chat_artifacts before clinical scoring.",
     ),
 )
 

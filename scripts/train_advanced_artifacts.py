@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Train and persist RNN + shadow tri-ensemble + routing config for advanced inference."""
+"""Train and persist RNN + shadow tri-ensemble + chat_router config for advanced inference."""
 from __future__ import annotations
 
 import json
@@ -35,7 +35,7 @@ def load_features():
     return features, seq, feature_cols
 
 
-def train_rnn_artifacts(df, seq_raw, feature_cols):
+def train_rnn_chat_artifacts(df, seq_raw, feature_cols):
     champ = sample_rows(df, CHAMPION_SAMPLE, random_state=RANDOM_STATE)
     y = champ["readmit_30d"].astype(int)
     X = champ[feature_cols]
@@ -67,13 +67,13 @@ def train_rnn_artifacts(df, seq_raw, feature_cols):
     else:
         print("RNN training skipped (torch unavailable)")
 
-    routing = {
+    chat_router = {
         "uncertainty_low": float(os.environ.get("UNCERTAINTY_LOW", "0.35")),
         "uncertainty_high": float(os.environ.get("UNCERTAINTY_HIGH", "0.55")),
         "blend_mode": "average",
     }
-    (models_dir / "routing_config.json").write_text(json.dumps(routing, indent=2), encoding="utf-8")
-    print("Saved routing_config.json")
+    (models_dir / "chat_router_config.json").write_text(json.dumps(chat_router, indent=2), encoding="utf-8")
+    print("Saved chat_router_config.json")
 
 
 def train_shadow_ensemble(df, feature_cols):
@@ -116,9 +116,9 @@ def train_shadow_ensemble(df, feature_cols):
 
 def main():
     features, seq, feature_cols = load_features()
-    train_rnn_artifacts(features, seq, feature_cols)
+    train_rnn_chat_artifacts(features, seq, feature_cols)
     train_shadow_ensemble(features, feature_cols)
-    print("Advanced inference artifacts complete.")
+    print("Advanced inference chat_artifacts complete.")
 
 
 if __name__ == "__main__":

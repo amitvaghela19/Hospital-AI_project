@@ -15,7 +15,7 @@ from streamlit_app.charts import (
 )
 from streamlit_app.components.dashboard_filters import cohort_filter_active
 from streamlit_app.components.sidebar import render_sidebar
-from streamlit_app.artifacts import load_register
+from streamlit_app.chat_artifacts import load_register
 from streamlit_app.data_loaders import load_model_card
 from streamlit_app.rbac import require_page_access
 from streamlit_app.page_registry import page_header_from_script
@@ -34,7 +34,7 @@ filters_active = cohort_filter_active(filters)
 if filters_active:
     st.caption(
         "Cohort filters are applied to 'Risk band distribution'. "
-        "Feature importance and prediction distribution are global model artifacts "
+        "Feature importance and prediction distribution are global model chat_artifacts "
         "(not recalculated per cohort filter)."
     )
 
@@ -68,7 +68,7 @@ with st.expander("How to read these charts", expanded=False):
         "a causal clinical effect.\n"
         "- Common top drivers in this project include **prior inpatient visits**, "
         "**discharge disposition**, and **total visits**.\n"
-        "- Sourced from global model artifacts (`CHART_FEATURE` / champion register); "
+        "- Sourced from global model chat_artifacts (`CHART_FEATURE` / champion register); "
         "**not recalculated** when sidebar cohort filters change.\n"
         + (
             f"- When a shadow ensemble is served, importance may still reflect the "

@@ -142,7 +142,7 @@ def _rnn_arch_params() -> tuple[int, int]:
         return 16, 32
 
 
-def load_rnn_artifacts(models_dir: Path | None = None):
+def load_rnn_chat_artifacts(models_dir: Path | None = None):
     models_dir = models_dir or ROOT / "models"
     pt = models_dir / "rnn_primary.pt"
     tok = models_dir / "rnn_token_maps.json"

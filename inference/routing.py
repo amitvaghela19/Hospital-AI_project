@@ -7,13 +7,13 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-from inference.rnn_core import load_rnn_artifacts, predict_rnn_prob, row_to_seq_frame
+from inference.rnn_core import load_rnn_chat_artifacts, predict_rnn_prob, row_to_seq_frame
 
 ROOT = Path(__file__).resolve().parent.parent
 
 
-def _routing_config() -> dict:
-    cfg_path = ROOT / "models" / "routing_config.json"
+def _chat_router_config() -> dict:
+    cfg_path = ROOT / "models" / "chat_router_config.json"
     if cfg_path.exists():
         return json.loads(cfg_path.read_text(encoding="utf-8"))
     return {
@@ -27,14 +27,14 @@ def _row_to_seq_frame(row: dict, token_maps: dict | None = None) -> pd.DataFrame
     return row_to_seq_frame(row, token_maps)
 
 
-def score_with_routing(
+def score_with_chat_router(
     X: pd.DataFrame,
     row: dict,
     rf_pipe,
     feature_cols: list[str],
 ) -> dict:
     rf_prob = float(rf_pipe.predict_proba(X)[0, 1])
-    cfg = _routing_config()
+    cfg = _chat_router_config()
     low, high = float(cfg["uncertainty_low"]), float(cfg["uncertainty_high"])
     result = {
         "rf_prob": rf_prob,
@@ -46,7 +46,7 @@ def score_with_routing(
     if not (low <= rf_prob <= high):
         return result
 
-    model, token_maps, torch_mod = load_rnn_artifacts()
+    model, token_maps, torch_mod = load_rnn_chat_artifacts()
     if model is None:
         return result
 

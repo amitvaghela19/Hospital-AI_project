@@ -7,7 +7,7 @@ if str(ROOT) not in sys.path:
 
 import streamlit as st
 
-from streamlit_app.artifacts import load_register
+from streamlit_app.chat_artifacts import load_register
 from streamlit_app.charts import (
     chart_actual_vs_predicted,
     chart_model_metrics_leaderboard,

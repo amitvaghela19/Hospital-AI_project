@@ -15,7 +15,7 @@ CERTIFIED_ROUTES = frozenset(
         "dimensional_metric_mcp",
         "script_qa",
         "vector_rag_mcp",
-        "learned_qa",
+        "promoted_qa_qa",
     }
 )
 
@@ -24,8 +24,8 @@ def _feedback_path():
     return PATHS.get("chat_feedback", PATHS["audit"].parent / "chat_feedback.json")
 
 
-def _learned_path():
-    return PATHS.get("learned_answers", PATHS["audit"].parent / "learned_answers.json")
+def _promoted_qa_path():
+    return PATHS.get("promoted_qa_answers", PATHS["audit"].parent / "promoted_qa_answers.json")
 
 
 def record_feedback(
@@ -89,16 +89,16 @@ def _question_patterns(question: str) -> list[str]:
 
 def promote_feedback(limit: int = 50) -> dict[str, Any]:
     fb_path = _feedback_path()
-    learned_path = _learned_path()
+    promoted_qa_path = _promoted_qa_path()
     if not fb_path.exists():
         return {"promoted": 0, "skipped": 0}
 
     rows = json.loads(fb_path.read_text(encoding="utf-8"))
-    learned = json.loads(learned_path.read_text(encoding="utf-8")) if learned_path.exists() else []
+    promoted_qa = json.loads(promoted_qa_path.read_text(encoding="utf-8")) if promoted_qa_path.exists() else []
 
     promoted = 0
     skipped = 0
-    next_id = len(learned) + 1
+    next_id = len(promoted_qa) + 1
 
     for row in rows:
         if promoted >= limit:
@@ -117,7 +117,7 @@ def promote_feedback(limit: int = 50) -> dict[str, Any]:
             skipped += 1
             continue
 
-        learned.append(
+        promoted_qa.append(
             {
                 "id": f"learn_{next_id:04d}",
                 "patterns": _question_patterns(question),
@@ -131,7 +131,7 @@ def promote_feedback(limit: int = 50) -> dict[str, Any]:
         promoted += 1
         next_id += 1
 
-    learned_path.parent.mkdir(parents=True, exist_ok=True)
-    learned_path.write_text(json.dumps(learned, indent=2), encoding="utf-8")
+    promoted_qa_path.parent.mkdir(parents=True, exist_ok=True)
+    promoted_qa_path.write_text(json.dumps(promoted_qa, indent=2), encoding="utf-8")
     fb_path.write_text(json.dumps(rows, indent=2), encoding="utf-8")
-    return {"promoted": promoted, "skipped": skipped, "total_learned": len(learned)}
+    return {"promoted": promoted, "skipped": skipped, "total_promoted_qa": len(promoted_qa)}

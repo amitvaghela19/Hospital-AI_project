@@ -1,1 +1,1 @@
-"""Advanced inference: routing, shadow, similarity, tribunal."""
+"""Advanced inference: chat_router, shadow, similarity, tribunal."""

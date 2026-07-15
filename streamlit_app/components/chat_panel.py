@@ -6,7 +6,7 @@ import streamlit as st
 
 from mcp.client.pool import pool
 from streamlit_app.components.health_panel import rag_mode_label
-from streamlit_app.routing import route_chat, suggested_prompts
+from chatbot.graph.api import route_chat, suggested_prompts
 from streamlit_app.rbac_auth import validate_role
 
 
@@ -22,12 +22,16 @@ def _process_inflight_chat(
     progress_trail: list[str] = []
 
     with st.chat_message("assistant"):
-        with st.status("Thinking...", expanded=True) as status:
+        with st.status("Analyzing...", expanded=True) as status:
+            from streamlit_app.components.chat_progress import render_chat_stepper
+            stepper_placeholder = st.empty()
 
             def on_progress(label: str) -> None:
-                status.update(label=label)
                 if label not in progress_trail:
                     progress_trail.append(label)
+                with stepper_placeholder:
+                    render_chat_stepper(progress_trail)
+                status.update(label=label)
 
             turn_id = str(uuid.uuid4())
             ans, route, stages, rag_used = route_chat(
@@ -112,7 +116,7 @@ def render_chat_panel(role: str) -> None:
     with col_a:
         use_tribunal = st.checkbox("MCP Model Tribunal (multi-gate LangGraph)", value=True)
     with col_b:
-        show_debug = st.checkbox("Show routing debug", value=False)
+        show_debug = st.checkbox("Show chat_router debug", value=False)
 
     rag_mode = rag_mode_label()
     if rag_mode == "keyword_fallback":

@@ -5,8 +5,8 @@ from __future__ import annotations
 import pandas as pd
 import streamlit as st
 
-from mcp.services import http_svc
-from streamlit_app.artifacts import load_register
+from mcp.services import llm_svc
+from streamlit_app.chat_artifacts import load_register
 from streamlit_app.components.readonly_table import render_readonly_table
 from streamlit_app.diagnostics import (
     DiagnosticCheck,
@@ -35,7 +35,7 @@ def _sync_runtime_from_session() -> None:
 
 def render_model_switcher() -> None:
     st.markdown("#### LLM model control")
-    health = http_svc.ollama_health()
+    health = llm_svc.ollama_health()
     installed = health.get("models") or []
     if health.get("status") != "ok":
         st.warning(f"Ollama unreachable: {health.get('error', health.get('status'))}")
@@ -66,7 +66,7 @@ def render_model_switcher() -> None:
         if st.button("Test primary model", use_container_width=True):
             _sync_runtime_from_session()
             with st.spinner("Probing model…"):
-                text, model = http_svc.llm_generate(
+                text, model = llm_svc.llm_generate(
                     "Reply with exactly: MODEL_OK",
                     model=primary,
                     timeout_s=30,

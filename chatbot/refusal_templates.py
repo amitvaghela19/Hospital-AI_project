@@ -49,6 +49,6 @@ def refuse_no_ids(role: str) -> str:
 
 
 def refuse_data_mutation(role: str) -> str:
-    from streamlit_app.security import refuse_data_mutation as _msg
+    from streamlit_app.chat_security import refuse_data_mutation as _msg
 
     return _msg(role)

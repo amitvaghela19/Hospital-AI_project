@@ -1,4 +1,4 @@
-﻿#!/usr/bin/env python3
+#!/usr/bin/env python3
 """Index rag_documents.json into Chroma collection project_knowledge."""
 from __future__ import annotations
 
@@ -8,6 +8,8 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
 
 
 def index_project_knowledge() -> dict:
@@ -30,6 +32,7 @@ def index_project_knowledge() -> dict:
         col = client.get_or_create_collection(CHROMA_COLLECTION)
         ids = [str(d["id"]) for d in docs]
         texts = [str(d["text"]) for d in docs]
+        
         if ids:
             col.add(ids=ids, documents=texts)
         return {"status": "ok", "indexed": len(ids), "collection": CHROMA_COLLECTION}

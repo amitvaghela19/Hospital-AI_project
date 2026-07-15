@@ -35,9 +35,9 @@ def render_ollama_banner(*, compact: bool = False) -> None:
     if status["reachable"]:
         models = []
         try:
-            from mcp.services import http_svc
+            from mcp.services import llm_svc
 
-            health = http_svc.ollama_health()
+            health = llm_svc.ollama_health()
             models = (health.get("models") or [])[:3]
         except Exception:
             pass

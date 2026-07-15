@@ -84,6 +84,13 @@ def dimensional_metric(message: str) -> str | None:
     if mart.empty or "readmit_30d" not in mart.columns:
         return None
 
+    unhandled_filters = [
+        r"high risk", r"risk", r"stay", r"visit", r"days", r"diagnos", r"diabetes",
+        r"medication", r"procedure", r"lab", r"admission", r"discharge", r"emergency", r"outpatient"
+    ]
+    if any(re.search(rf"\b{x}\b", msg) for x in unhandled_filters):
+        return None
+
     gender_label = _parse_gender_filter(msg)
     race_value = _parse_race_filter(msg, mart)
     age_band = _parse_age_filter(msg)

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""CLI: promote thumbs-up chat feedback into learned_answers.json."""
+"""CLI: promote thumbs-up chat feedback into promoted_qa_answers.json."""
 from __future__ import annotations
 
 import argparse

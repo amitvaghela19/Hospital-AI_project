@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import streamlit as st
 
-from streamlit_app.artifacts import (
+from streamlit_app.chat_artifacts import (
     get_champion_pipeline,
     get_reference_pipeline,
     load_feature_cols,
@@ -158,7 +158,7 @@ def render_predict_panel(role: str, can_predict: bool) -> None:
     with right:
         st.markdown("#### 2 · Run inference pipeline")
         st.caption(
-            "Eight gated steps: DQ → features → champion → RNN routing → shadow → "
+            "Eight gated steps: DQ → features → champion → RNN chat_router → shadow → "
             "cohort → explanation → audit. Displayed risk band uses **certified mart** "
             "when the encounter exists in mart_clinical_risk (same as dashboard pages)."
         )

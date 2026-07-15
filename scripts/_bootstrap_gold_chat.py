@@ -1,4 +1,4 @@
-﻿"""Bootstrap: gold-standard chatbot implementation files."""
+"""Bootstrap: gold-standard chatbot implementation files."""
 from pathlib import Path
 ROOT = Path(r"e:/Amit/Project/Hospital project")
 
@@ -8,24 +8,24 @@ def w(rel, content):
     p.write_text(content, encoding="utf-8")
     print("wrote", rel)
 
-# learned.py
-w("chatbot/learned.py", '''"""Promoted Q&A pairs from chat feedback."""
+# promoted_qa.py
+w("chatbot/promoted_qa.py", '''"""Promoted Q&A pairs from chat feedback."""
 from __future__ import annotations
 import json
 from streamlit_app import ROOT
-LEARNED_PATH = ROOT / "data" / "nosql" / "learned_answers.json"
-LEARNED: list[dict] = []
+promoted_qa_PATH = ROOT / "data" / "nosql" / "promoted_qa_answers.json"
+promoted_qa: list[dict] = []
 
-def reload_learned() -> None:
-    global LEARNED
-    LEARNED = json.loads(LEARNED_PATH.read_text(encoding="utf-8")) if LEARNED_PATH.exists() else []
+def reload_promoted_qa() -> None:
+    global promoted_qa
+    promoted_qa = json.loads(promoted_qa_PATH.read_text(encoding="utf-8")) if promoted_qa_PATH.exists() else []
 
-reload_learned()
+reload_promoted_qa()
 
-def match_learned(message: str) -> dict | None:
+def match_promoted_qa(message: str) -> dict | None:
     msg = message.lower()
     best, hits_best = None, 0
-    for item in LEARNED:
+    for item in promoted_qa:
         hits = sum(1 for pat in item.get("patterns", []) if pat.lower() in msg)
         if hits > hits_best:
             best, hits_best = item, hits

@@ -84,6 +84,7 @@ def _openai_compatible_generate(
         "model": model,
         "messages": [{"role": "user", "content": prompt}],
         "stream": False,
+        "temperature": 0.0,
     }
     try:
         r = requests.post(url, headers=headers, json=payload, timeout=timeout_s)
@@ -121,7 +122,7 @@ def llm_generate(
     if mode == "none":
         return None, None
 
-    from mcp.services.http_svc import ollama_generate
+    from mcp.services.llm_svc import ollama_generate
 
     return ollama_generate(prompt, model=model, timeout_s=timeout_s)
 

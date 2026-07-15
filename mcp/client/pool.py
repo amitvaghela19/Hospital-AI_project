@@ -13,7 +13,7 @@ from typing import Any
 from mcp.services import (
     chroma_svc,
     config_svc,
-    http_svc,
+    llm_svc,
     logging_svc,
     numpy_svc,
     pandas_svc,
@@ -63,9 +63,9 @@ class MCPPool:
     from mcp.services import feedback_svc
 
     out = feedback_svc.promote_feedback(limit=limit)
-    from chatbot import learned as learned_mod
+    from chatbot import promoted_qa as promoted_qa_mod
 
-    learned_mod.reload_learned()
+    promoted_qa_mod.reload_promoted_qa()
     return out
 
   def feedback_stats(self) -> dict:
@@ -82,43 +82,23 @@ class MCPPool:
     return chroma_svc.rag_query(message)
 
   def ollama_phrase(self, facts: dict) -> tuple[str | None, str | None]:
-    cache_key = "ollama:" + hashlib.sha256(json.dumps(facts, sort_keys=True).encode()).hexdigest()
-    cached = redis_svc.cache_get(cache_key)
-    if cached and isinstance(cached, dict):
-      return cached.get("text"), cached.get("model")
-    text, model = http_svc.ollama_phrase_facts(facts)
-    if text:
-      redis_svc.cache_set(cache_key, {"text": text, "model": model}, ttl_seconds=3600)
-    return text, model
+    return llm_svc.ollama_phrase_facts(facts)
 
   def ollama_format_chat(self, facts: dict) -> tuple[str | None, str | None]:
     """
-    Format the final chat response using Ollama, with Redis cache.
+    Format the final chat response using Ollama.
     """
-    cache_key = "ollama_chat:" + hashlib.sha256(json.dumps(facts, sort_keys=True).encode()).hexdigest()
-    cached = redis_svc.cache_get(cache_key)
-    if cached and isinstance(cached, dict):
-      return cached.get("text"), cached.get("model")
-    text, model = http_svc.ollama_format_chat(facts)
-    if text:
-      redis_svc.cache_set(cache_key, {"text": text, "model": model}, ttl_seconds=3600)
-    return text, model
+    return llm_svc.ollama_format_chat(facts)
 
   def ollama_chat_answer(self, question: str, role: str, context: dict | None = None) -> tuple[str | None, str | None]:
     """
     Final fallback for unknown questions (after scripts/metrics/RAG fail).
-    Uses Redis cache where available to reduce repeated LLM calls.
     """
     safe_context = context or {}
-    payload = {"question": question, "role": role, "context": safe_context}
-    cache_key = "ollama_chat:" + hashlib.sha256(json.dumps(payload, sort_keys=True).encode()).hexdigest()
-    cached = redis_svc.cache_get(cache_key)
-    if cached and isinstance(cached, dict):
-      return cached.get("text"), cached.get("model")
-    text, model = http_svc.ollama_chat_answer(question=question, role=role, context=safe_context)
-    if text:
-      redis_svc.cache_set(cache_key, {"text": text, "model": model}, ttl_seconds=3600)
-    return text, model
+    return llm_svc.ollama_chat_answer(question=question, role=role, context=safe_context)
+
+  def ollama_generate_sql(self, question: str) -> str | None:
+    return llm_svc.ollama_generate_sql(question)
 
   def sqlite_query(self, sql: str) -> str:
     return sqlite_svc.run_query(sql)
@@ -145,7 +125,7 @@ class MCPPool:
     return notifications_svc.notify(title, message, level)
 
   def ollama_health(self) -> dict:
-    return http_svc.ollama_health()
+    return llm_svc.ollama_health()
 
   def redis_available(self) -> bool:
     return redis_svc.is_available()
@@ -168,7 +148,7 @@ class MCPPool:
 
     return {
       "redis": redis_svc.is_available(),
-      "ollama": http_svc.ollama_health(),
+      "ollama": llm_svc.ollama_health(),
       "warehouse": PATHS["warehouse"].exists(),
       "vectordb": PATHS["vectordb"].exists(),
       "champion": PATHS["champion_register"].exists(),

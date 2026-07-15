@@ -11,9 +11,19 @@ _WRITE_FORBIDDEN = re.compile(
 )
 
 _READ_ONLY_MSG = (
-    "Only read-only SELECT queries are permitted for security reasons. "
+    "Only read-only SELECT queries are permitted for chat_security reasons. "
     "Viewer, Clinician, and Analyst modes cannot modify patient or encounter data."
 )
+
+
+def _ensure_marts_loaded(conn: sqlite3.Connection) -> None:
+    cur = conn.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='mart_clinical_risk'")
+    if not cur.fetchone():
+        import pandas as pd
+        csv_path = PATHS["warehouse"].parent.parent / "exports" / "mart_clinical_risk.csv"
+        if csv_path.exists():
+            df = pd.read_csv(csv_path)
+            df.to_sql("mart_clinical_risk", conn, if_exists="replace", index=False)
 
 
 def run_query(sql: str, limit: int = 100) -> str:
@@ -31,6 +41,7 @@ def run_query(sql: str, limit: int = 100) -> str:
     if "limit" not in norm:
         sql_stripped = f"{sql_stripped} LIMIT {limit}"
     with sqlite3.connect(db) as conn:
+        _ensure_marts_loaded(conn)
         cur = conn.execute(sql_stripped)
         cols = [d[0] for d in cur.description] if cur.description else []
         rows = cur.fetchall()

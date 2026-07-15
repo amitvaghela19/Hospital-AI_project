@@ -1,0 +1,58 @@
+[
+  {
+    "patterns": ["hospital overview", "what is hospital overview", "overview page"],
+    "answer": "**Hospital Overview**: This page displays certified KPIs derived from Phase 4 exports, providing a high-level summary of hospital readmission statistics."
+  },
+  {
+    "patterns": ["risk analysis", "what is risk analysis", "analysis page"],
+    "answer": "**Risk Analysis**: This page analyzes readmission patterns broken down by age, gender, and diagnosis categories."
+  },
+  {
+    "patterns": ["patient behavior", "what is patient behavior", "behavior page"],
+    "answer": "**Patient Behavior**: This page explores visit frequency and medication utilization patterns among the patient population."
+  },
+  {
+    "patterns": ["model insights", "what is model insights", "insights page"],
+    "answer": "**Model Insights**: This page provides visibility into the machine learning model, including feature importance and prediction distributions."
+  },
+  {
+    "patterns": ["ml performance", "what is ml performance", "performance page"],
+    "answer": "**ML Performance**: This page displays champion metrics, experiment matrices, and model calibration results to evaluate machine learning accuracy."
+  },
+  {
+    "patterns": ["risk prediction", "what is risk prediction", "prediction page"],
+    "answer": "**Risk Prediction**: This page allows you to select a patient encounter, run the 8-step inference pipeline, and review the resulting clinical assessment."
+  },
+  {
+    "patterns": ["grounded chat", "what is grounded chat", "chat page"],
+    "answer": "**Grounded Chat**: This page features an interactive chatbot powered by an MCP tribunal, predefined scripts, metrics, RAG, and SQLite queries (role-gated)."
+  },
+  {
+    "patterns": ["system health diagnose", "what is system health diagnose", "diagnose page", "system health"],
+    "answer": "**System Health Diagnose**: This page is used to verify prerequisites, runtime services, and ML artifacts before clinical scoring can be performed."
+  },
+  {
+    "patterns": ["kpi", "what is a kpi", "what are kpis"],
+    "answer": "**KPI (Key Performance Indicator)**: A measurable value that demonstrates how effectively the hospital is achieving key business objectives, such as reducing readmissions."
+  },
+  {
+    "patterns": ["mcp tribunal", "what is mcp tribunal", "tribunal", "what is tribunal"],
+    "answer": "**MCP Tribunal**: A multi-agent routing system that evaluates user chat queries and routes them to the appropriate deterministic or LLM-based tool."
+  },
+  {
+    "patterns": ["rag", "what is rag", "retrieval augmented generation", "retrieval-augmented generation"],
+    "answer": "**RAG (Retrieval-Augmented Generation)**: A technique used by the chatbot to retrieve context from project documentation to inform its answers."
+  },
+  {
+    "patterns": ["inference pipeline", "what is the inference pipeline", "pipeline"],
+    "answer": "**Inference Pipeline**: An 8-step process that takes a patient encounter, prepares the data, runs the machine learning model, and produces a clinical risk assessment."
+  },
+  {
+    "patterns": ["feature importance", "what is feature importance"],
+    "answer": "**Feature Importance**: A ranking of which patient attributes (e.g., number of inpatient visits, specific diagnoses) most strongly influence the model's readmission predictions."
+  },
+  {
+    "patterns": ["champion metric", "what are champion metrics", "champion metrics", "calibration"],
+    "answer": "**Champion Metrics & Calibration**: The key evaluation scores (like ROC AUC, Precision, Recall) and probability reliability measures of the best-performing machine learning model selected for deployment."
+  }
+]

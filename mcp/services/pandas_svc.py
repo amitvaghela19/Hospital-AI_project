@@ -65,7 +65,7 @@ def encounter_detail(encounter_id: int, mask_patient_nbr: bool = False) -> dict 
     """
     Return encounter-level details from `mart_clinical_risk.csv`.
 
-    Note: routing layer should enforce RBAC; this function includes a `mask_patient_nbr`
+    Note: chat_router layer should enforce RBAC; this function includes a `mask_patient_nbr`
     parameter as a defense-in-depth safeguard.
     """
     mart = load_mart("mart_clinical_risk")
@@ -109,7 +109,7 @@ def encounter_detail(encounter_id: int, mask_patient_nbr: bool = False) -> dict 
 def patient_lookup(patient_nbr: str) -> dict:
     """
     Exact-match lookup of patient_nbr in `mart_clinical_risk.csv`.
-    Returns found flag, encounter list, and summary fields for chat routing.
+    Returns found flag, encounter list, and summary fields for chat chat_router.
     """
     query = str(patient_nbr).strip()
     mart = load_mart("mart_clinical_risk")
@@ -166,19 +166,24 @@ def semantic_metric(message: str) -> str | None:
         return dim
     msg = message.lower()
     mart = load_mart("mart_readmission")
-    if ("readmission" in msg or "readmit" in msg) and (
-        "rate" in msg or "percent" in msg or "%" in msg or "what is" in msg or "how many" in msg
-    ):
-        if "age" in msg:
+    cleaned = msg.strip("? .")
+    # Avoid hijacking specific filtered queries
+    has_filters = any(x in cleaned for x in ["gender", "male", "female", "race", "hospital", "stay", "visit", "high risk", "risk", "diagnos"])
+    
+    if ("readmission" in cleaned or "readmit" in cleaned) and ("rate" in cleaned or "percent" in cleaned or "%" in cleaned):
+        if "age" in cleaned:
             g = mart.groupby("age")["readmit_30d"].mean()
             return "Readmission rate by age: " + ", ".join(f"{i}={v:.1%}" for i, v in g.items())
-        rate = mart["readmit_30d"].mean()
-        n = len(mart)
-        return f"The certified 30-day readmission rate is {rate:.1%} ({int(rate * n):,} readmissions / {n:,} encounters)."
-    if "length of stay" in msg or "avg los" in msg or ("average" in msg and "stay" in msg):
+        if not has_filters:
+            rate = mart["readmit_30d"].mean()
+            n = len(mart)
+            return f"The certified 30-day readmission rate is {rate:.1%} ({int(rate * n):,} readmissions / {n:,} encounters)."
+            
+    if ("length of stay" in cleaned or "avg los" in cleaned or ("average" in cleaned and "stay" in cleaned)) and not has_filters:
         los = mart["time_in_hospital"].mean()
         return f"The average length of stay is {los:.1f} days across {len(mart):,} encounters."
-    if "total patient" in msg or "how many patient" in msg:
+        
+    if (cleaned in ["how many patients", "how many patient", "total patients", "total patient", "total encounters", "total encounter"]) and not has_filters:
         kpi_path = ROOT / "data" / "exports" / "kpi_snapshot.json"
         if kpi_path.exists():
             import json

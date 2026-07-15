@@ -11,7 +11,7 @@ import numpy as np
 import pandas as pd
 
 from governance.dq_rules import validate_inference_row
-from inference.rnn_core import load_rnn_artifacts, predict_rnn_prob, row_to_seq_frame
+from inference.rnn_core import load_rnn_chat_artifacts, predict_rnn_prob, row_to_seq_frame
 from inference.shadow import disagreement
 from mcp.client.pool import pool
 from streamlit_app.rbac_auth import validate_role
@@ -39,8 +39,8 @@ class PipelineResult:
     error: str | None = None
 
 
-def _routing_config() -> dict:
-    cfg_path = ROOT / "models" / "routing_config.json"
+def _chat_router_config() -> dict:
+    cfg_path = ROOT / "models" / "chat_router_config.json"
     if cfg_path.exists():
         return json.loads(cfg_path.read_text(encoding="utf-8"))
     return {
@@ -95,7 +95,7 @@ def run_predict_pipeline(
         PipelineStep("dq", "1 · Data quality gate"),
         PipelineStep("features", "2 · Feature preparation"),
         PipelineStep("champion", "3 · Primary tri_ensemble score"),
-        PipelineStep("routing", "4 · Uncertainty routing (RNN)"),
+        PipelineStep("chat_router", "4 · Uncertainty chat_router (RNN)"),
         PipelineStep("shadow", "5 · Reference RF comparison"),
         PipelineStep("cohort", "6 · Similar cohort (Chroma)"),
         PipelineStep("explain", "7 · Clinician explanation"),
@@ -142,8 +142,8 @@ def run_predict_pipeline(
         primary_prob = _run_step(2, lambda: float(pipe.predict_proba(X)[0, 1]))
         steps[2].detail = f"Primary probability = {primary_prob:.4f}"
 
-        # 4 Routing
-        cfg = _routing_config()
+        # 4 chat_router
+        cfg = _chat_router_config()
         low, high = float(cfg["uncertainty_low"]), float(cfg["uncertainty_high"])
         routed = {"primary_prob": primary_prob, "rnn_prob": None, "final_prob": primary_prob, "route": "tri_only"}
         steps[3].status = "running"
@@ -155,10 +155,10 @@ def run_predict_pipeline(
             steps[3].duration_ms = int((time.perf_counter() - t0) * 1000)
             _notify()
         else:
-            model, token_maps, torch_mod = load_rnn_artifacts()
+            model, token_maps, torch_mod = load_rnn_chat_artifacts()
             if model is None:
                 steps[3].status = "skipped"
-                steps[3].detail = "RNN artifacts missing — tri_ensemble only"
+                steps[3].detail = "RNN chat_artifacts missing — tri_ensemble only"
                 steps[3].duration_ms = int((time.perf_counter() - t0) * 1000)
                 _notify()
             else:

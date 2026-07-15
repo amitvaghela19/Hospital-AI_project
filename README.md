@@ -87,6 +87,25 @@ Open `http://localhost:8501`. Default mode is **Viewer**.
 
 Paths are registered in [`datafile.txt`](datafile.txt) — edit that file to add/remove datasets without code changes.
 
+### 4. How to get good Chatbot answers (Bootstrap)
+
+To ensure the chatbot has access to all semantic knowledge, similar patients, and advanced artifacts, run the following commands in your terminal (with the virtual environment activated):
+
+1. **Index Project Knowledge** (populates ChromaDB for semantic RAG):
+   ```powershell
+   python scripts/index_project_knowledge.py
+   ```
+2. **Index Encounter Neighbors** (enables the "similar patients" feature):
+   ```powershell
+   python scripts/index_encounter_neighbors.py
+   ```
+3. **Train Advanced Chat Artifacts** (builds shadow models and alignment artifacts):
+   ```powershell
+   python scripts/train_advanced_artifacts.py
+   ```
+
+*Note: You can also trigger the indexing operations directly from the **System Health Diagnose** page in the Streamlit app.*
+
 ### 4. Verify before deploy
 
 ```powershell

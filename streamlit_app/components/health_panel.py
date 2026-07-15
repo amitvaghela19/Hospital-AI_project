@@ -4,7 +4,7 @@ import streamlit as st
 
 from mcp.client.pool import pool
 from streamlit_app import ROOT
-from streamlit_app.artifacts import artifact_status
+from streamlit_app.chat_artifacts import artifact_status
 from streamlit_app.rbac_auth import validate_role
 from streamlit_app.theme import status_badge
 
@@ -14,7 +14,7 @@ def render_health_panel(*, show_bootstrap: bool = True, role: str | None = None)
     hide_model_details = role == "viewer"
     st.subheader("System health summary")
     health = pool.health_summary()
-    artifacts = artifact_status()
+    chat_artifacts = artifact_status()
 
     col1, col2 = st.columns(2)
     with col1:
@@ -41,8 +41,8 @@ def render_health_panel(*, show_bootstrap: bool = True, role: str | None = None)
         status_badge(wh_ok, "SQLite warehouse", "Present" if wh_ok else "Missing")
 
     with col2:
-        st.markdown("**ML artifacts**")
-        for key, info in artifacts.items():
+        st.markdown("**ML chat_artifacts**")
+        for key, info in chat_artifacts.items():
             label = key.replace("_", " ").title()
             detail = info["detail"]
             if hide_model_details and key in ("champion_register", "register_serve_alignment", "shadow_tri_ensemble"):
@@ -69,7 +69,7 @@ def render_health_panel(*, show_bootstrap: bool = True, role: str | None = None)
         with b2:
             st.markdown("Run `notebooks/phase3_ml_experiments.ipynb` for champion training.")
         with b3:
-            st.code("python scripts/train_advanced_artifacts.py", language="bash")
+            st.code("python scripts/train_advanced_chat_artifacts.py", language="bash")
 
 
         st.divider()

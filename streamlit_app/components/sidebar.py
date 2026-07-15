@@ -3,7 +3,7 @@ from __future__ import annotations
 import streamlit as st
 
 from mcp.client.pool import pool
-from streamlit_app.artifacts import load_register
+from streamlit_app.chat_artifacts import load_register
 from streamlit_app.components.dashboard_filters import (
     cohort_filter_active,
     render_dashboard_filters,

@@ -3,7 +3,7 @@
 Generate `chatbot/scripts/training_1000.json` with exactly 1000 prompt entries.
 
 This is not ML training; it expands the scripted "gold standard" prompt library
-used by `streamlit_app/routing.match_script()`.
+used by `streamlit_app/chat_router.match_script()`.
 """
 
 from __future__ import annotations

@@ -3,7 +3,16 @@ from __future__ import annotations
 import json
 
 from mcp.common import CHROMA_COLLECTION, PATHS
-from chatbot.intent import format_rag_answer, has_project_context, is_patient_lookup_request
+from chatbot.graph.utils import is_patient_lookup_request
+
+def has_project_context(msg: str) -> bool:
+    return any(x in msg.lower() for x in ["hospital", "patient", "encounter", "model", "pipeline", "predict", "train"])
+
+def format_rag_answer(message: str, docs: list[str], ids: list[str]) -> str:
+    if not docs:
+        return ""
+    combined = "\n\n".join(docs)
+    return f"Based on our project documentation:\n\n{combined}"
 
 
 def _keyword_rag(message: str) -> str | None:

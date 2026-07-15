@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from mcp.server.fastmcp import FastMCP
 
-from mcp.services import http_svc, sqlite_svc
+from mcp.services import llm_svc, sqlite_svc
 
 mcp = FastMCP("hospital-http-sqlite")
 
@@ -10,13 +10,13 @@ mcp = FastMCP("hospital-http-sqlite")
 @mcp.tool()
 def ollama_health() -> str:
     """Check Ollama availability and list models."""
-    return str(http_svc.ollama_health())
+    return str(llm_svc.ollama_health())
 
 
 @mcp.tool()
 def ollama_generate(prompt: str, model: str = "") -> str:
     """Generate text via Ollama (non-clinical phrasing only)."""
-    text, used = http_svc.ollama_generate(prompt, model or None)
+    text, used = llm_svc.ollama_generate(prompt, model or None)
     return text or f"Ollama failed for model={model or 'default'}"
 
 

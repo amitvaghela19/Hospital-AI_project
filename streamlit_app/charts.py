@@ -7,7 +7,7 @@ import plotly.express as px
 import plotly.graph_objects as go
 import streamlit as st
 
-from streamlit_app.artifacts import load_register
+from streamlit_app.chat_artifacts import load_register
 from streamlit_app.components.readonly_table import render_readonly_table
 from streamlit_app.components.chart_drilldown import (
     attach_pie_diag_customdata,

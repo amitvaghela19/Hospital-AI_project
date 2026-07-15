@@ -23,7 +23,7 @@ PATHS = {
     "rag_docs": ROOT / "data" / "nosql" / "rag_documents.json",
     "chat_sessions": ROOT / "data" / "nosql" / "chat_sessions.json",
     "chat_feedback": ROOT / "data" / "nosql" / "chat_feedback.json",
-    "learned_answers": ROOT / "data" / "nosql" / "learned_answers.json",
+    "promoted_qa_answers": ROOT / "data" / "nosql" / "promoted_qa_answers.json",
     "champion_register": ROOT / "models" / "champion_register.json",
     "notifications_log": ROOT / "data" / "nosql" / "mcp_notifications.json",
     "scheduler_jobs": ROOT / "data" / "nosql" / "mcp_scheduler_jobs.json",
