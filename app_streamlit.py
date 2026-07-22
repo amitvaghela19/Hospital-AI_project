@@ -23,9 +23,9 @@ st.set_page_config(
 inject_theme()
 resolve_ollama_url()
 
-from streamlit_app.page_registry import APP_PAGES
+from streamlit_app.page_registry import NAV_PAGES
 
-pages = [st.Page(p.path, title=p.title, icon=p.icon, default=p.default) for p in APP_PAGES]
+pages = [st.Page(p.path, title=p.title, icon=p.icon, default=p.default) for p in NAV_PAGES]
 
 pg = st.navigation(pages)
 pg.run()

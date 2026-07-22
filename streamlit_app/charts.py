@@ -34,6 +34,7 @@ from streamlit_app.chart_theme import (
     assign_multitrace_bar_customdata,
     base_plotly_layout,
     enhance_figure,
+    palette_for,
     rate_bar_text_labels,
     render_plotly_chart,
 )
@@ -769,7 +770,7 @@ def _experiments_for_comparison(horizon: str = "30d") -> pd.DataFrame:
 
 
 def chart_model_precision_recall_landscape(horizon: str = "30d") -> None:
-    """Scatter: each model as a point — upper-right = higher recall and precision."""
+    """Model landscape: recall (y) vs precision (x); bubble size = ROC AUC; champion starred."""
     sub = _experiments_for_comparison(horizon)
     if sub.empty:
         st.info("experiments_matrix.csv not found.")
@@ -777,76 +778,146 @@ def chart_model_precision_recall_landscape(horizon: str = "30d") -> None:
     register = load_register()
     champion = str(register.get("champion_model", "catboost")).lower()
     sub = sub.copy()
-    sub["precision_pct"] = sub["precision"] * 100
-    sub["recall_pct"] = sub["recall"] * 100
-    sub["is_champion"] = sub["model"].astype(str).str.lower() == champion
+    sub["precision_pct"] = pd.to_numeric(sub["precision"], errors="coerce") * 100
+    sub["recall_pct"] = pd.to_numeric(sub["recall"], errors="coerce") * 100
+    sub["roc_auc"] = pd.to_numeric(sub["roc_auc"], errors="coerce")
+    if "f1" in sub.columns:
+        sub["f1"] = pd.to_numeric(sub["f1"], errors="coerce")
+    else:
+        sub["f1"] = float("nan")
+    sub = sub.dropna(subset=["precision_pct", "recall_pct", "roc_auc"])
+    if sub.empty:
+        st.info("No valid precision/recall rows for this horizon.")
+        return
 
+    sub["is_champion"] = sub["model"].astype(str).str.lower() == champion
+    # Bubble size from ROC AUC (readable range ~14–28)
+    auc_min = float(sub["roc_auc"].min())
+    auc_max = float(sub["roc_auc"].max())
+    auc_span = max(auc_max - auc_min, 1e-6)
+
+    def _bubble_size(auc: float, *, champion_row: bool) -> float:
+        scaled = 14 + 14 * ((float(auc) - auc_min) / auc_span)
+        return scaled + 6 if champion_row else scaled
+
+    colors = palette_for(len(sub))
     fig = go.Figure()
-    others = sub[~sub["is_champion"]]
-    if not others.empty:
+
+    # Soft “recall-first” band (upper half of the plot area)
+    y0 = max(0.0, float(sub["recall_pct"].min()) - 6)
+    y1 = min(100.0, float(sub["recall_pct"].max()) + 10)
+    x0 = max(0.0, float(sub["precision_pct"].min()) - 2)
+    x1 = float(sub["precision_pct"].max()) + 3
+    recall_band = y0 + 0.55 * (y1 - y0)
+    fig.add_hrect(
+        y0=recall_band,
+        y1=y1,
+        fillcolor="rgba(45, 212, 191, 0.07)",
+        line_width=0,
+        layer="below",
+    )
+    fig.add_hline(
+        y=float(sub["recall_pct"].median()),
+        line_dash="dot",
+        line_color="rgba(148, 163, 184, 0.45)",
+        line_width=1,
+        annotation_text="median recall",
+        annotation_position="top left",
+        annotation_font=dict(size=10, color=COLORS["muted"]),
+    )
+    fig.add_vline(
+        x=float(sub["precision_pct"].median()),
+        line_dash="dot",
+        line_color="rgba(148, 163, 184, 0.45)",
+        line_width=1,
+        annotation_text="median precision",
+        annotation_position="top right",
+        annotation_font=dict(size=10, color=COLORS["muted"]),
+    )
+
+    # One colored marker per model (legend carries the name — no overlapping labels)
+    for i, (_, row) in enumerate(sub.sort_values("recall_pct").iterrows()):
+        is_champ = bool(row["is_champion"])
+        label = str(row["model_label"])
+        color = COLORS["tab_active"] if is_champ else colors[i % len(colors)]
+        size = _bubble_size(float(row["roc_auc"]), champion_row=is_champ)
+        f1_val = row["f1"]
+        f1_txt = f"{100 * float(f1_val):.1f}%" if pd.notna(f1_val) else "—"
         fig.add_trace(
             go.Scatter(
-                x=others["precision_pct"],
-                y=others["recall_pct"],
-                mode="markers+text",
-                name="Candidates",
-                text=others["model_label"],
-                textposition="top center",
-                textfont=dict(size=11, color=COLORS["muted"]),
+                x=[float(row["precision_pct"])],
+                y=[float(row["recall_pct"])],
+                mode="markers",
+                name=("★ " + label) if is_champ else label,
+                legendgroup=label,
                 marker=dict(
-                    size=11,
-                    color=COLORS["bar"],
-                    opacity=0.75,
-                    line=dict(width=1, color=COLORS["border"]),
+                    size=size,
+                    color=color,
+                    symbol="star" if is_champ else "circle",
+                    opacity=0.95 if is_champ else 0.88,
+                    line=dict(
+                        width=2.2 if is_champ else 1.2,
+                        color=COLORS["text"] if is_champ else "rgba(255,255,255,0.35)",
+                    ),
                 ),
-                customdata=others[["model_label", "roc_auc"]].values,
+                customdata=[[label, float(row["roc_auc"]), f1_txt, "champion" if is_champ else "candidate"]],
                 hovertemplate=(
-                    "<b>%{customdata[0]}</b><br>"
+                    "<b>%{customdata[0]}</b> (%{customdata[3]})<br>"
                     "Recall: %{y:.1f}%<br>"
                     "Precision: %{x:.1f}%<br>"
-                    "ROC AUC: %{customdata[1]:.1%}<extra></extra>"
+                    "ROC AUC: %{customdata[1]:.1%}<br>"
+                    "F1: %{customdata[2]}<extra></extra>"
                 ),
+                showlegend=True,
             )
         )
+
+    # Champion callout (single annotation — keeps the plot clean)
     champ = sub[sub["is_champion"]]
     if not champ.empty:
-        row = champ.iloc[0]
-        fig.add_trace(
-            go.Scatter(
-                x=[row["precision_pct"]],
-                y=[row["recall_pct"]],
-                mode="markers+text",
-                name="Champion",
-                text=[f"★ {row['model_label']}"],
-                textposition="top center",
-                textfont=dict(size=12, color=COLORS["tab_active"]),
-                marker=dict(
-                    size=18,
-                    color=COLORS["tab_active"],
-                    symbol="star",
-                    line=dict(width=2, color=COLORS["text"]),
-                ),
-                customdata=[[row["model_label"], row["roc_auc"]]],
-                hovertemplate=(
-                    "<b>%{customdata[0]} (champion)</b><br>"
-                    "Recall: %{y:.1f}%<br>"
-                    "Precision: %{x:.1f}%<br>"
-                    "ROC AUC: %{customdata[1]:.1%}<extra></extra>"
-                ),
-            )
+        crow = champ.iloc[0]
+        fig.add_annotation(
+            x=float(crow["precision_pct"]),
+            y=float(crow["recall_pct"]),
+            text=f"<b>{crow['model_label']}</b><br>champion",
+            showarrow=True,
+            arrowhead=2,
+            arrowsize=1,
+            arrowwidth=1.5,
+            arrowcolor=COLORS["tab_active"],
+            ax=48,
+            ay=-42,
+            font=dict(size=12, color=COLORS["tab_active"]),
+            bgcolor="rgba(17, 24, 39, 0.85)",
+            bordercolor=COLORS["tab_active"],
+            borderwidth=1,
+            borderpad=6,
         )
+
     split = register.get("split") or register.get("metrics", {}).get("split") or "holdout"
     fig.update_layout(
         **_plotly_layout(
-            title=f"Recall vs precision trade-off ({horizon}, {split} split)",
-            xaxis_title="Precision %",
-            yaxis_title="Recall %",
+            title=f"Model landscape — recall vs precision ({horizon}, {split})",
+            xaxis_title="Precision (%)  →  fewer false alarms",
+            yaxis_title="Recall (%)  →  catch more readmissions",
         )
     )
-    fig.update_xaxes(range=[max(0, sub["precision_pct"].min() - 3), sub["precision_pct"].max() + 4])
-    fig.update_yaxes(range=[max(0, sub["recall_pct"].min() - 5), min(100, sub["recall_pct"].max() + 8)])
+    fig.update_xaxes(
+        range=[x0, x1],
+        ticksuffix="%",
+        showgrid=True,
+        zeroline=False,
+    )
+    fig.update_yaxes(
+        range=[y0, y1],
+        ticksuffix="%",
+        showgrid=True,
+        zeroline=False,
+    )
     apply_multitrace_legend_below(fig)
-    apply_full_width_chart_layout(fig, height=460)
+    apply_full_width_chart_layout(fig, height=500)
+    # Extra bottom room for the multi-model legend
+    fig.update_layout(margin=dict(b=130))
     render_plotly_chart(fig)
 
 

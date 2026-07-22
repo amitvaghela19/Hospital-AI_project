@@ -274,7 +274,24 @@ def _enhance_scatter_trace(trace) -> None:
         if not trace.line.color:
             trace.line.color = color
     if trace.marker is not None:
-        trace.marker.size = max(getattr(trace.marker, "size", 6) or 6, 7)
+        raw_size = getattr(trace.marker, "size", 6)
+        # Keep list/array sizes (bubble charts) and large intentional markers as-is.
+        if isinstance(raw_size, (list, tuple)):
+            pass
+        else:
+            try:
+                size_val = float(raw_size or 6)
+            except (TypeError, ValueError):
+                size_val = 6.0
+            if size_val <= 12:
+                trace.marker.size = max(size_val, 7)
+        symbol = str(getattr(trace.marker, "symbol", "") or "").lower()
+        existing_line = getattr(trace.marker, "line", None)
+        # Don't flatten custom champion / thick outlines.
+        if symbol == "star" or (
+            existing_line is not None and float(getattr(existing_line, "width", 0) or 0) >= 2
+        ):
+            return
         trace.marker.line = dict(color="rgba(255, 255, 255, 0.35)", width=1)
 
 

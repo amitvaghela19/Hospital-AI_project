@@ -13,6 +13,7 @@ class PageDef:
     icon: str
     subtitle: str
     default: bool = False
+    show_in_nav: bool = True
 
     @property
     def filename(self) -> str:
@@ -50,6 +51,7 @@ APP_PAGES: tuple[PageDef, ...] = (
         "ML Performance",
         "📈",
         "Champion metrics, experiment matrix, and calibration.",
+        show_in_nav=False,
     ),
     PageDef(
         "streamlit_app/app_pages/6_Risk_Prediction.py",
@@ -70,6 +72,8 @@ APP_PAGES: tuple[PageDef, ...] = (
         "Verify prerequisites, runtime services, and ML chat_artifacts before clinical scoring.",
     ),
 )
+
+NAV_PAGES: tuple[PageDef, ...] = tuple(p for p in APP_PAGES if p.show_in_nav)
 
 
 def page_def_for_script(script_path: str | Path) -> PageDef:
