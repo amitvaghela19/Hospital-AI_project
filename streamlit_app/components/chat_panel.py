@@ -20,90 +20,117 @@ def _process_inflight_chat(
     """Run route_chat with live status updates, then persist the assistant reply."""
     last_row = st.session_state.get("last_scored_row")
     progress_trail: list[str] = []
+    turn_id = str(uuid.uuid4())
+    ans = "Sorry — chat failed unexpectedly. Please try again."
+    route = "error"
+    stages: list = []
+    rag_used = "n/a"
 
-    with st.chat_message("assistant"):
-        with st.status("Analyzing...", expanded=True) as status:
-            from streamlit_app.components.chat_progress import render_chat_stepper
-            stepper_placeholder = st.empty()
+    try:
+        with st.chat_message("assistant"):
+            with st.status("Analyzing...", expanded=True) as status:
+                from streamlit_app.components.chat_progress import render_chat_stepper
 
-            def on_progress(label: str) -> None:
-                if label not in progress_trail:
-                    progress_trail.append(label)
-                with stepper_placeholder:
-                    render_chat_stepper(progress_trail)
-                status.update(label=label)
+                stepper_placeholder = st.empty()
 
-            turn_id = str(uuid.uuid4())
-            ans, route, stages, rag_used = route_chat(
-                message,
-                role,
-                use_tribunal=use_tribunal,
-                last_scored_row=last_row if isinstance(last_row, dict) else None,
-                on_progress=on_progress,
-            )
-            status.update(label="Complete", state="complete")
+                def on_progress(label: str) -> None:
+                    if label not in progress_trail:
+                        progress_trail.append(label)
+                    with stepper_placeholder:
+                        render_chat_stepper(progress_trail)
+                    status.update(label=label)
 
-        st.markdown(ans)
-        session_id = st.session_state.get("chat_session_id")
-        if not session_id:
-            session_id = str(uuid.uuid4())
-            st.session_state.chat_session_id = session_id
-        pool.append_turn(
-            session_id=session_id,
-            role=role,
-            question=message,
-            answer=ans,
-            route=route,
-            rag_mode=rag_used,
-            stages=stages,
-            turn_id=turn_id,
+                try:
+                    ans, route, stages, rag_used = route_chat(
+                        message,
+                        role,
+                        use_tribunal=use_tribunal,
+                        last_scored_row=last_row if isinstance(last_row, dict) else None,
+                        on_progress=on_progress,
+                    )
+                    status.update(label="Complete", state="complete")
+                except Exception as exc:
+                    ans = (
+                        "Sorry — the chat request failed before finishing. "
+                        f"Details: `{type(exc).__name__}: {exc}`\n\n"
+                        "Tip: check **System Health Diagnose** (Ollama / exports), then try again."
+                    )
+                    route = "error"
+                    stages = []
+                    rag_used = "n/a"
+                    status.update(label="Failed", state="error")
+
+            st.markdown(ans)
+            session_id = st.session_state.get("chat_session_id")
+            if not session_id:
+                session_id = str(uuid.uuid4())
+                st.session_state.chat_session_id = session_id
+            try:
+                pool.append_turn(
+                    session_id=session_id,
+                    role=role,
+                    question=message,
+                    answer=ans,
+                    route=route,
+                    rag_mode=rag_used,
+                    stages=stages,
+                    turn_id=turn_id,
+                )
+            except Exception:
+                pass
+            fb = st.feedback("thumbs", key=f"fb_{turn_id}")
+            if fb == 1:
+                pool.record_chat_feedback(
+                    turn_id=turn_id,
+                    rating=1,
+                    role=role,
+                    route=route,
+                    question=message,
+                    answer=ans,
+                )
+            elif fb == 0:
+                pool.record_chat_feedback(
+                    turn_id=turn_id,
+                    rating=0,
+                    role=role,
+                    route=route,
+                    question=message,
+                    answer=ans,
+                )
+            if show_debug:
+                cap = f"route={route}"
+                if rag_used and rag_used != "n/a":
+                    cap += f" | rag={rag_used}"
+                st.caption(cap)
+                if progress_trail:
+                    with st.expander("Progress steps"):
+                        for step in progress_trail:
+                            st.markdown(f"- {step}")
+                if stages:
+                    with st.expander("Tribunal stages"):
+                        for stage in stages:
+                            st.markdown(
+                                f'<div class="tribunal-stage">{stage}</div>',
+                                unsafe_allow_html=True,
+                            )
+
+        try:
+            pool.audit(role, route, {"message_preview": message[:120], "turn_id": turn_id})
+        except Exception:
+            pass
+
+        st.session_state.chat_history.append(
+            {
+                "role": "assistant",
+                "content": ans,
+                "route": route,
+                "stages": stages,
+                "rag_mode": rag_used,
+                "turn_id": turn_id,
+            }
         )
-        fb = st.feedback("thumbs", key=f"fb_{turn_id}")
-        if fb == 1:
-            pool.record_chat_feedback(
-                turn_id=turn_id,
-                rating=1,
-                role=role,
-                route=route,
-                question=message,
-                answer=ans,
-            )
-        elif fb == 0:
-            pool.record_chat_feedback(
-                turn_id=turn_id,
-                rating=0,
-                role=role,
-                route=route,
-                question=message,
-                answer=ans,
-            )
-        if show_debug:
-            cap = f"route={route}"
-            if rag_used and rag_used != "n/a":
-                cap += f" | rag={rag_used}"
-            st.caption(cap)
-            if progress_trail:
-                with st.expander("Progress steps"):
-                    for step in progress_trail:
-                        st.markdown(f"- {step}")
-            if stages:
-                with st.expander("Tribunal stages"):
-                    for stage in stages:
-                        st.markdown(f'<div class="tribunal-stage">{stage}</div>', unsafe_allow_html=True)
-
-    pool.audit(role, route, {"message_preview": message[:120], "turn_id": turn_id})
-
-    st.session_state.chat_history.append(
-        {
-            "role": "assistant",
-            "content": ans,
-            "route": route,
-            "stages": stages,
-            "rag_mode": rag_used,
-            "turn_id": turn_id,
-        }
-    )
-    st.session_state.pop("_chat_inflight", None)
+    finally:
+        st.session_state.pop("_chat_inflight", None)
     st.rerun()
 
 

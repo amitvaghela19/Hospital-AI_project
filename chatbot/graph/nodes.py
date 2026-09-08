@@ -103,40 +103,41 @@ def router_node(state: ChatState) -> dict:
         
     if "fred" in lowered or "unemployment" in lowered or "cpi" in lowered:
         return {"route": "fred_mcp"}
-        
-    if can_sql(role) and not ("select" in lowered and "from" in lowered):
-        data_keywords = [
-            "how many", "count", "average", "avg", "mean", "rate", "percent", "percentage",
-            "maximum", "max", "minimum", "min", "length of stay", "visit", "high risk", "readmission",
-            "low risk", "risk", "meds", "age", "male", "female", "patients", "encounters", "stay"
-        ]
-        if any(kw in lowered for kw in data_keywords) or wants_metric(message):
-            return {"route": "sqlite_mcp_generate", "stages": ["tool_router:sqlite_compiled"]}
-            
-    if "select" in lowered and "from" in lowered:
-        return {"route": "sqlite_mcp_direct"}
-        
+
+    # Prefer deterministic FAQ / metrics before Ollama SQL (avoids long hangs).
     allow_script = not wants_metric(lowered) or wants_dimensional_metric(message)
     hit = match_script(message)
     if hit and allow_script:
         return {"route": "script_qa", "raw_context": hit["answer"]}
-        
+
     promoted_qa = match_promoted_qa(message)
     if promoted_qa:
         return {"route": "promoted_qa_qa", "raw_context": promoted_qa["answer"]}
-        
+
     if is_off_topic(message):
         return {"route": "refuse", "final_answer": off_topic_reply()}
-        
+
     dim = pool.dimensional_metric(message)
     if dim:
         return {"route": "dimensional_metric_mcp", "raw_context": dim}
-        
+
     sem = pool.semantic_metric(message)
     if sem:
         route_str = "dimensional_metric_mcp" if wants_dimensional_metric(message) else "semantic_metric_mcp"
         return {"route": route_str, "raw_context": sem}
-        
+
+    if "select" in lowered and "from" in lowered:
+        return {"route": "sqlite_mcp_direct"}
+
+    if can_sql(role) and not ("select" in lowered and "from" in lowered):
+        data_keywords = [
+            "how many", "count", "average", "avg", "mean", "rate", "percent", "percentage",
+            "maximum", "max", "minimum", "min", "length of stay", "visit", "high risk", "readmission",
+            "low risk", "risk", "meds", "age", "male", "female", "patients", "encounters", "stay",
+        ]
+        if any(kw in lowered for kw in data_keywords) or wants_metric(message):
+            return {"route": "sqlite_mcp_generate", "stages": ["tool_router:sqlite_compiled"]}
+
     return {"route": "vector_rag_mcp"}
 
 def faq_node(state: ChatState) -> dict:
@@ -219,71 +220,147 @@ def fred_node(state: ChatState) -> dict:
     series = "UNRATE" if "unemployment" in message else "CPIAUCSL"
     return {"raw_context": str(pool.fred_series(series))}
 
+_SQL_FAIL_TIP = (
+    "I couldn't complete that SQL request.\n\n"
+    "Check **System Health Diagnose** (Ollama running + models pulled), "
+    "or ask a certified metric / FAQ question that does not need live SQL generation."
+)
+
+
+def _sql_result_is_error(res: str | None) -> bool:
+    lower = str(res or "").lower()
+    return (
+        "error:" in lower
+        or "no such column:" in lower
+        or "unrecognized token:" in lower
+    )
+
+
+def _llm_available_for_chat() -> bool:
+    """True when formatting/SQL LLM can be attempted without a long dead wait."""
+    try:
+        from streamlit_app.llm_provider import get_provider_mode, custom_provider_configured
+
+        mode = get_provider_mode()
+        if mode == "none":
+            return False
+        if mode == "custom_api":
+            return custom_provider_configured()
+    except Exception:
+        pass
+    health = pool.ollama_health()
+    return health.get("status") == "ok"
+
+
 def sql_generate_node(state: ChatState) -> dict:
     role = state.get("role", "viewer")
     if not can_sql(role):
         return {"route": "refuse", "final_answer": refuse_tpl.refuse_sql(role)}
-        
+
     message = _get_last_user_message(state)
-    # If this is a retry, we inject the previous error into the prompt to self-correct
+    retries = int(state.get("sql_retries") or 0)
     err = state.get("sql_result")
+    # Persist retry count on regenerate (conditional edges cannot mutate state).
+    if err and _sql_result_is_error(err):
+        retries = retries + 1
+
     if err and state.get("sql_query"):
-        prompt = f"Original question: {message}\nYour previous query: {state['sql_query']}\nFailed with error: {err}\nPlease fix the query."
+        prompt = (
+            f"Original question: {message}\n"
+            f"Your previous query: {state['sql_query']}\n"
+            f"Failed with error: {err}\n"
+            "Please fix the query."
+        )
     else:
         prompt = message
-        
+
     generated_sql = pool.ollama_generate_sql(prompt)
-    return {"sql_query": generated_sql}
+    if not generated_sql:
+        fail_msg = (
+            "Error: SQL generation failed (LLM unavailable or returned empty). "
+            + _SQL_FAIL_TIP
+        )
+        return {
+            "sql_query": None,
+            "sql_result": fail_msg,
+            "sql_retries": max(retries, 2),
+            "final_answer": fail_msg,
+        }
+    return {"sql_query": generated_sql, "sql_retries": retries}
+
 
 def sql_execute_node(state: ChatState) -> dict:
     role = state.get("role", "viewer")
     if not can_sql(role):
         return {"route": "refuse", "final_answer": refuse_tpl.refuse_sql(role)}
-        
+
+    if state.get("final_answer") and _sql_result_is_error(state.get("sql_result")):
+        return {}
+
     query = state.get("sql_query")
     if not query:
         # direct sql mode
         query = _get_last_user_message(state)
-        
-    if not query or not query.strip().lower().startswith("select"):
-        return {"sql_result": "Error: Not a valid SELECT query."}
-        
+
+    retries = int(state.get("sql_retries") or 0)
+    if not query or not str(query).strip().lower().startswith("select"):
+        msg = "Error: Not a valid SELECT query."
+        out: dict = {"sql_result": msg}
+        if retries >= 2:
+            out["final_answer"] = f"{msg}\n\n{_SQL_FAIL_TIP}"
+        return out
+
     try:
         res = pool.sqlite_query(query)
         return {"sql_result": res}
     except Exception as exc:
-        return {"sql_result": f"SQLite error: {exc}"}
+        msg = f"SQLite error: {exc}"
+        out = {"sql_result": msg}
+        if retries >= 2:
+            out["final_answer"] = f"{msg}\n\n{_SQL_FAIL_TIP}"
+        return out
+
 
 def rag_node(state: ChatState) -> dict:
     message = _get_last_user_message(state)
     rag = pool.rag_answer(message)
     return {"raw_context": rag}
 
+
 def synthesis_node(state: ChatState) -> dict:
     # If final answer is already set (e.g. guardrails/faq), do nothing
     if state.get("final_answer"):
         return {}
-        
+
     message = _get_last_user_message(state)
     route = state.get("route")
-    
+    use_llm = _llm_available_for_chat()
+
     # Check if we have SQL results
     if route in ("sqlite_mcp_generate", "sqlite_mcp_direct"):
         res = state.get("sql_result", "")
-        # Format explicitly
+        if _sql_result_is_error(res):
+            return {"final_answer": f"{res}\n\n{_SQL_FAIL_TIP}", "route": "sqlite_mcp"}
         if "query" in message.lower() or "sql" in message.lower():
             ans = f"Compiled Query:\n```sql\n{state.get('sql_query')}\n```\n\nResult:\n{res}"
             return {"final_answer": ans, "route": "sqlite_mcp"}
-        else:
-            short_res = res if len(res) < 800 else res[:800] + "\n...[truncated]"
-            formatted, _ = pool.ollama_format_chat({"Question": message, "Query Result": short_res})
-            return {"final_answer": formatted if formatted else f"Result:\n{res}", "route": "sqlite_mcp"}
+        if not use_llm:
+            return {"final_answer": f"Result:\n{res}", "route": "sqlite_mcp"}
+        short_res = res if len(str(res)) < 800 else str(res)[:800] + "\n...[truncated]"
+        formatted, _ = pool.ollama_format_chat({"Question": message, "Query Result": short_res})
+        return {"final_answer": formatted if formatted else f"Result:\n{res}", "route": "sqlite_mcp"}
 
-    # Use general ollama synthesis
     raw_ctx = state.get("raw_context")
     if not raw_ctx:
         return {"final_answer": "No information found.", "route": "refuse"}
-        
+
+    # RAG answers are already phrased in chroma_svc.format_rag_answer — skip a second LLM pass.
+    if route == "vector_rag_mcp" and str(raw_ctx).startswith("Based on our project documentation"):
+        return {"final_answer": raw_ctx}
+
+    if not use_llm:
+        return {"final_answer": raw_ctx}
+
     facts = {
         "question": message,
         "route": route,
@@ -294,6 +371,6 @@ def synthesis_node(state: ChatState) -> dict:
     llm_facts = state.get("llm_facts")
     if llm_facts:
         facts["payload"] = llm_facts
-        
+
     formatted, _ = pool.ollama_format_chat(facts)
     return {"final_answer": formatted or raw_ctx}

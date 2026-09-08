@@ -75,20 +75,26 @@ def build_graph():
     builder.add_edge("sql_generator", "sql_executor")
     
     def check_sql_error(state: ChatState) -> str:
-        res = state.get("sql_result", "")
-        # If SQLite execution returned an error
-        if "error:" in res.lower() or "no such column:" in res.lower() or "unrecognized token:" in res.lower():
-            # Allow up to 3 retries
-            retries = state.get("sql_retries", 0)
-            if retries < 3:
-                state["sql_retries"] = retries + 1
-                return "retry"
+        """Read-only routing — never mutate state here (LangGraph will not persist it)."""
+        if state.get("final_answer"):
+            return "continue"
+        res = str(state.get("sql_result") or "")
+        lower = res.lower()
+        is_err = (
+            "error:" in lower
+            or "no such column:" in lower
+            or "unrecognized token:" in lower
+        )
+        retries = int(state.get("sql_retries") or 0)
+        # Cap at 2 regenerations after the first failure (sql_retries bumped in sql_generate_node).
+        if is_err and retries < 2:
+            return "retry"
         return "continue"
-        
+
     builder.add_conditional_edges(
         "sql_executor",
         check_sql_error,
-        {"retry": "sql_generator", "continue": "synthesis"}
+        {"retry": "sql_generator", "continue": "synthesis"},
     )
     
     # Path for other nodes going directly to synthesis

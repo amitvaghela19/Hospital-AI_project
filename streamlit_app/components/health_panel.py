@@ -21,6 +21,9 @@ def render_health_panel(*, show_bootstrap: bool = True, role: str | None = None)
         st.markdown("**Runtime services**")
         redis_ok = bool(health.get("redis"))
         status_badge(redis_ok, "Redis cache", "Connected" if redis_ok else "Optional — caching disabled")
+        st.caption(
+            "Default chat model: **llama3** (faster). Redis speeds up repeat LLM phrasing when connected."
+        )
 
         ollama = health.get("ollama", {})
         ollama_ok = ollama.get("status") == "ok"

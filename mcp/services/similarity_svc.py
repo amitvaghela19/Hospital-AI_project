@@ -10,6 +10,36 @@ from mcp.common import PATHS
 NEIGHBOR_COLLECTION = os.environ.get("CHROMA_NEIGHBOR_COLLECTION", "encounter_neighbors")
 NEIGHBORS_K = int(os.environ.get("CHROMA_NEIGHBORS_K", "5"))
 
+_client = None
+_neighbor_collection = None
+
+
+def _get_client():
+    global _client
+    if _client is not None:
+        return _client
+    import chromadb
+
+    _client = chromadb.PersistentClient(path=str(PATHS["vectordb"]))
+    return _client
+
+
+def _get_neighbor_collection(*, recreate: bool = False):
+    """Lazy singleton for the encounter-neighbors collection."""
+    global _neighbor_collection
+    client = _get_client()
+    if recreate:
+        try:
+            client.delete_collection(NEIGHBOR_COLLECTION)
+        except Exception:
+            pass
+        _neighbor_collection = client.create_collection(NEIGHBOR_COLLECTION)
+        return _neighbor_collection
+    if _neighbor_collection is not None:
+        return _neighbor_collection
+    _neighbor_collection = client.get_or_create_collection(NEIGHBOR_COLLECTION)
+    return _neighbor_collection
+
 
 def _encounter_text(row: dict | pd.Series) -> str:
     if isinstance(row, pd.Series):
@@ -27,16 +57,9 @@ def _encounter_text(row: dict | pd.Series) -> str:
 
 def index_encounters(df: pd.DataFrame, sample_n: int = 10000) -> dict[str, Any]:
     try:
-        import chromadb
-
         if len(df) > sample_n:
             df = df.sample(n=sample_n, random_state=42)
-        client = chromadb.PersistentClient(path=str(PATHS["vectordb"]))
-        try:
-            client.delete_collection(NEIGHBOR_COLLECTION)
-        except Exception:
-            pass
-        col = client.create_collection(NEIGHBOR_COLLECTION)
+        col = _get_neighbor_collection(recreate=True)
         ids = []
         docs = []
         metas = []
@@ -60,10 +83,7 @@ def index_encounters(df: pd.DataFrame, sample_n: int = 10000) -> dict[str, Any]:
 def similar_cohort_stats(row: dict, k: int | None = None) -> dict[str, Any] | None:
     k = k or NEIGHBORS_K
     try:
-        import chromadb
-
-        client = chromadb.PersistentClient(path=str(PATHS["vectordb"]))
-        col = client.get_or_create_collection(NEIGHBOR_COLLECTION)
+        col = _get_neighbor_collection()
         if col.count() == 0:
             return None
         query = _encounter_text(row)

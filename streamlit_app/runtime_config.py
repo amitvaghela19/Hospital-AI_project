@@ -5,7 +5,7 @@ from __future__ import annotations
 import os
 from typing import Any
 
-_DEFAULT_PRIMARY = "deepseek-r1:latest"
+_DEFAULT_PRIMARY = "llama3:latest"
 _DEFAULT_FALLBACK = "llama3:latest"
 
 

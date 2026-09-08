@@ -30,17 +30,19 @@ c1, c2 = st.columns([1.9, 1.1], gap="large")
 with c1:
     chart_readmission_by_gender(filters)
 with c2:
-    st.markdown("#### Overview Notes")
+    st.markdown("#### What the numbers say")
     st.markdown(
-        "- **Cohort filters** sync across Hospital Overview, Risk Analysis, Patient Behavior, and Model Insights "
-        "(age, gender, diagnosis, readmit flag, LOS, visit/med bands, and **Risk band (model)**).\n"
-        "- **Chart drill-down:** click or double-click bars and slices to toggle sidebar filters; "
-        "use **Clear filters** to reset. Risk band filters the scored 30-day cohort (~7.5k encounters).\n"
-        "- **RBAC:** Viewer = aggregate dashboards only; Clinician = clinical scoring + masked encounter IDs; "
-        "Analyst/Admin = full IDs and ML Performance. Elevate via **Access control** in the sidebar.\n"
-        "- **Risk Analysis** — diagnosis donuts and demographic breakdowns. "
-        "**Model Insights** — feature importance and risk-band chart. "
-        "**Grounded Chat** — plain-language readmission Q&A."
+        "- About **1 in 9** diabetic inpatient stays come back within 30 days "
+        "(**~11.2%** overall; average stay **~4.4** days).\n"
+        "- **Prior hospital use is the strongest signal.** Patients with two or more "
+        "prior inpatient stays return at **~38%**, versus **~8%** with no prior stays.\n"
+        "- A small high-utilization group carries outsized load: roughly **2%** of patients "
+        "account for nearly **19%** of 30-day readmissions.\n"
+        "- Risk rises with longer stays (**~9%** for 1–2 days vs **~16%** when stay exceeds 10 days) "
+        "and concentrates in units such as **Nephrology (~25%)** and **Cardiology (~15%)**.\n"
+        "- Older adults (roughly ages **70–90**) sit above the baseline; younger cohorts "
+        "(about **20–40**) stay well below **~7.5%**. Discharge destination and comorbidity "
+        "burden also matter when planning follow-up."
     )
 
 st.divider()

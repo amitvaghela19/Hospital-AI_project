@@ -14,8 +14,7 @@
     },
     "clinician": {
       "marts": [
-        "mart_clinical_risk",
-        "mart_readmission"
+        "mart_clinical_risk"
       ],
       "predict": true,
       "ids": "limited",

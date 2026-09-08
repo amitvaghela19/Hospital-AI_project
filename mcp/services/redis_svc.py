@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import hashlib
 import json
 from typing import Any
 
@@ -19,6 +20,7 @@ def _get_client():
         _client.ping()
         return _client
     except Exception:
+        _client = None
         return None
 
 
@@ -42,6 +44,17 @@ def cache_set(key: str, value: Any, ttl_seconds: int = 3600) -> bool:
         return True
     except Exception:
         return False
+
+
+def llm_cache_key(kind: str, model: str, payload: Any) -> str:
+    """Stable Redis key for LLM phrasing/format responses."""
+    blob = json.dumps(
+        {"kind": kind, "model": model or "", "payload": payload},
+        sort_keys=True,
+        default=str,
+    )
+    digest = hashlib.sha256(blob.encode("utf-8")).hexdigest()[:40]
+    return f"llm:{kind}:{digest}"
 
 
 def is_available() -> bool:
